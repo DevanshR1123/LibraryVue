@@ -1,0 +1,39 @@
+# Python
+*.pyc
+__pycache__/
+venv/
+*.py[cod]
+
+# Flask
+instance/
+.webassets-cache
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Environment variables
+.env
+
+# Compiled files
+*.pyd
+*.so
+*.dll
+*.exe
+*.out
+*.o
+*.a
+*.obj
+*.lib
+*.class
+*.war
+*.jar
+*.egg-info/
+dist/
+build/
