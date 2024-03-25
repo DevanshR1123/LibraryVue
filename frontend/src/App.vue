@@ -1,84 +1,144 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import Logo from '@/components/AppLogo.vue'
+
+const links = [
+  { path: '/', name: 'Home' },
+  { path: '/about', name: 'About' }
+]
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+    <h1>
+      <Logo />
+      LibraryMS
+    </h1>
+    <nav>
+      <ul class="nav-links">
+        <li v-for="link in links" :key="link.path">
+          <RouterLink :to="link.path">{{ link.name }}</RouterLink>
+        </li>
+      </ul>
+    </nav>
+    <div class="auth">
+      <RouterLink class="login-btn btn" to="/login">Login</RouterLink>
+      <RouterLink class="signup-btn btn" to="/signup">Signup</RouterLink>
     </div>
   </header>
-
-  <RouterView />
+  <main>
+    <RouterView />
+  </main>
 </template>
 <style scoped>
 header {
-  line-height: 1.5;
-  max-height: 100vh;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
+  padding: 1rem;
+  gap: 2rem;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  font-weight: 900;
 }
 
 nav {
   width: 100%;
-  font-size: 12px;
   text-align: center;
-  margin-top: 2rem;
-}
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
+  & ul {
+    list-style: none;
+    padding: 0;
     display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+    justify-content: center;
+    gap: 2rem;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
+  & a {
+    color: var(--color-text);
+    display: inline-block;
+    padding: 0 0.25em;
+    text-decoration: none;
+    font-weight: bold;
+
+    transition: color 500ms;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+
+    &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      inset: auto 0 -0.1em;
+      height: 0.15em;
+
+      background-color: var(--color-primary);
+
+      opacity: 0;
+      transition: opacity 500ms;
+    }
+
+    &.router-link-exact-active {
+      color: var(--color-primary);
+      position: relative;
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.auth {
+  display: flex;
+  gap: 1rem;
+
+  & .btn {
+    padding: 0.25em 1em;
+    border: none;
+    border-radius: 0.5em;
+    text-decoration: none;
+    font-weight: bold;
+
+    transition: all 250ms;
   }
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
+  & .login-btn {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+
+    border: 2px solid var(--color-primary);
+
+    &:hover {
+      background-color: var(--color-background-soft);
+      color: var(--color-secondary);
+    }
   }
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+  & .signup-btn {
+    background-color: var(--color-background-soft);
+    color: var(--color-secondary);
 
-    padding: 1rem 0;
-    margin-top: 1rem;
+    border: 2px solid var(--color-secondary);
+
+    &:hover {
+      background-color: var(--color-secondary);
+      color: var(--color-background);
+    }
   }
+}
+
+main {
+  padding: 1rem;
+  display: grid;
 }
 </style>
