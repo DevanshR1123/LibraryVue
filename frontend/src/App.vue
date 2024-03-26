@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import Logo from '@/components/AppLogo.vue'
+import NavAuth from '@/components/NavAuth.vue'
+import { useStore } from '@/store'
+import { computed } from 'vue'
 
-const links = [
+const store = useStore()
+const isAuth = computed(() => store.getters.isAuth)
+
+const baseLinks = [
   { path: '/', name: 'Home' },
   { path: '/about', name: 'About' }
 ]
+
+const authLinks = [
+  { path: '/books', name: 'Books' },
+  { path: '/authors', name: 'Authors' },
+  { path: '/dashboard', name: 'Dashboard' }
+]
+
+const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : baseLinks))
 </script>
 
 <template>
@@ -21,10 +35,7 @@ const links = [
         </li>
       </ul>
     </nav>
-    <div class="auth">
-      <RouterLink class="login-btn btn" to="/login">Login</RouterLink>
-      <RouterLink class="signup-btn btn" to="/signup">Signup</RouterLink>
-    </div>
+    <NavAuth />
   </header>
   <main>
     <RouterView />
@@ -33,7 +44,7 @@ const links = [
 <style scoped>
 header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr 4fr 1fr;
   align-items: center;
   background-color: var(--color-background-mute);
   color: var(--color-text);
@@ -94,45 +105,6 @@ nav {
       &::after {
         opacity: 1;
       }
-    }
-  }
-}
-
-.auth {
-  display: flex;
-  gap: 1rem;
-
-  & .btn {
-    padding: 0.25em 1em;
-    border: none;
-    border-radius: 0.5em;
-    text-decoration: none;
-    font-weight: bold;
-
-    transition: all 250ms;
-  }
-
-  & .login-btn {
-    background-color: var(--color-primary);
-    color: var(--color-background);
-
-    border: 2px solid var(--color-primary);
-
-    &:hover {
-      background-color: var(--color-background-soft);
-      color: var(--color-secondary);
-    }
-  }
-
-  & .signup-btn {
-    background-color: var(--color-background-soft);
-    color: var(--color-secondary);
-
-    border: 2px solid var(--color-secondary);
-
-    &:hover {
-      background-color: var(--color-secondary);
-      color: var(--color-background);
     }
   }
 }

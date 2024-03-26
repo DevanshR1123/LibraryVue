@@ -25,6 +25,11 @@
   color: var(--color-background);
 
   border-radius: 50%;
-  padding: 1rem;
+  padding: calc(var(--size) / 4);
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
 }
 </style>

@@ -1,14 +1,31 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from '@/store'
+import { type User } from '@/types'
+
+const router = useRouter()
+
+const store = useStore()
+const isAuth = store.getters.isAuth
+const loginAction = (user: User) => store.dispatch('login', user)
+
+if (isAuth) {
+  router.push('/')
+}
 
 const email = ref('')
 const password = ref('')
 
-const router = useRouter()
-
 const login = () => {
   console.log('Login', email.value, password.value)
+  loginAction({
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    role: 'admin'
+  })
   router.push('/')
 }
 </script>
