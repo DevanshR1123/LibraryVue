@@ -10,16 +10,29 @@ const confirmPassword = ref('')
 
 const router = useRouter()
 
-const signup = () => {
-  console.log(
-    'Signup',
-    firstName.value,
-    lastName.value,
-    email.value,
-    password.value,
-    confirmPassword.value
-  )
-  router.push('/')
+const signup = async () => {
+  if (password.value !== confirmPassword.value) {
+    alert('Passwords do not match')
+    return
+  }
+
+  const user = {
+    first_name: firstName.value,
+    last_name: lastName.value,
+    email: email.value,
+    password: password.value,
+    confirm_password: confirmPassword.value
+  }
+
+  const res = await fetch('http://localhost:5000/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user)
+  })
+
+  if (res.ok) {
+    router.push('/login')
+  }
 }
 </script>
 

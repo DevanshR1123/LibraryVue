@@ -3,7 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import Logo from '@/components/AppLogo.vue'
 import NavAuth from '@/components/NavAuth.vue'
 import { useStore } from '@/store'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const store = useStore()
 const isAuth = computed(() => store.getters.isAuth)
@@ -20,13 +20,17 @@ const authLinks = [
 ]
 
 const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : baseLinks))
+
+onMounted(() => {
+  store.dispatch('checkAuth')
+})
 </script>
 
 <template>
   <header>
     <h1>
       <Logo />
-      LibraryMS
+      LibraryVue
     </h1>
     <nav>
       <ul class="nav-links">
@@ -44,7 +48,7 @@ const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : base
 <style scoped>
 header {
   display: grid;
-  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   background-color: var(--color-background-mute);
   color: var(--color-text);

@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useStore } from '@/store'
+import { type LoginResponse, type User } from '@/types'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from '@/store'
-import { type User } from '@/types'
 
 const router = useRouter()
 
@@ -17,16 +17,18 @@ if (isAuth) {
 const email = ref('')
 const password = ref('')
 
-const login = () => {
-  console.log('Login', email.value, password.value)
-  loginAction({
-    id: 1,
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    role: 'admin'
-  })
-  router.push('/')
+const login = async () => {
+  const user = { email: email.value, password: password.value }
+  const res: LoginResponse = await fetch('http://localhost:5000/login?include_auth_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user)
+  }).then((res: Response) => res.json())
+
+  if (res.meta.code === 200) {
+    loginAction(res.response.user)
+    router.push('/')
+  }
 }
 </script>
 

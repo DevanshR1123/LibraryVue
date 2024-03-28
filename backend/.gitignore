@@ -1,4 +1,7 @@
 # Python
+.python-version
+.python-version/*
+.pyenv/
 *.pyc
 __pycache__/
 venv/

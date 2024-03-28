@@ -8,23 +8,17 @@ interface State {
 
 export const key: InjectionKey<Store<State>> = Symbol()
 
-export const userStore = createStore({
+export const userStore = createStore<State>({
   state: {
-    user: {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      role: 'admin'
-    }
+    user: null
   },
 
   getters: {
-    fullName: (state) => `${state.user.firstName} ${state.user.lastName}`,
-    email: (state) => state.user.email,
-    isAdmin: (state) => state.user.role === 'admin',
-    isLibrarian: (state) => state.user.role === 'librarian',
-    isUser: (state) => state.user.role === 'user',
+    fullName: (state) => `${state.user!.first_name} ${state.user!.last_name}`,
+    email: (state) => state.user!.email,
+    isAdmin: (state) => state.user!.roles.includes('admin'),
+    isLibrarian: (state) => state.user!.roles.includes('librarian'),
+    isUser: (state) => state.user!.roles.includes('user'),
     isAuth: (state) => !!state.user
   },
 
@@ -36,10 +30,16 @@ export const userStore = createStore({
 
   actions: {
     login({ commit }, user: User) {
+      localStorage.setItem('user', JSON.stringify(user))
       commit('SET_USER', user)
     },
     logout({ commit }) {
+      localStorage.removeItem('user')
       commit('SET_USER', null)
+    },
+    checkAuth({ commit }) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      commit('SET_USER', user)
     }
   }
 })

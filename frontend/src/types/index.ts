@@ -1,7 +1,15 @@
 export interface User {
   id: number
-  firstName: string
-  lastName: string
+  first_name: string
+  last_name: string
   email: string
-  role: string
+  roles: string[]
+  authentication_token: string
+}
+
+export interface LoginResponse {
+  meta: { code: number }
+  response: {
+    user: User
+  }
 }

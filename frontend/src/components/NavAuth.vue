@@ -11,9 +11,13 @@ const fullName = computed(() => store.getters.fullName)
 const isAuth = computed(() => store.getters.isAuth)
 const logoutAction = () => store.dispatch('logout')
 
-const logout = () => {
-  logoutAction()
-  router.push('/login')
+const logout = async () => {
+  await fetch('http://localhost:5000/logout', {
+    headers: { 'Content-Type': 'application/json' }
+  }).then(() => {
+    logoutAction()
+    router.push('/login')
+  })
 }
 </script>
 
