@@ -1,35 +1,13 @@
-from flask import current_app as app, render_template_string, request
-from flask_security import auth_required, hash_password
-from app.models import db, user_datastore, Book
+from flask import current_app as app
+from flask import render_template_string, request
+from flask_security import hash_password
+
+from app.models import db, user_datastore
 
 
 @app.route("/")
 def home():
     return render_template_string("Hello Home")
-
-
-@app.post("/book")
-@auth_required("token")
-def add_book():
-    data = request.get_json()
-    title = data.get("title")
-    author = data.get("author")
-    section_id = data.get("section_id")
-    description = data.get("description")
-    content = data.get("content")
-    image = data.get("image")
-
-    book = Book(
-        title=title,
-        author=author,
-        section_id=section_id,
-        description=description,
-        content=content,
-        image=image,
-    )
-    db.session.add(book)
-    db.session.commit()
-    return {"message": "Book added successfully"}
 
 
 @app.post("/signup")

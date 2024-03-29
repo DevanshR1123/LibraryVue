@@ -13,3 +13,13 @@ export interface LoginResponse {
     user: User
   }
 }
+
+export interface Book {
+  id: number
+  title: string
+  author: string
+  genre: string
+  year: number
+  description: string
+  image: string
+}

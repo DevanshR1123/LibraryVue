@@ -17,23 +17,56 @@ app.security = Security(app, user_datastore)
 
 app.app_context().push()
 
+sample_users = [
+    {
+        "email": "devansh.rathor@example.com",
+        "password": "password",
+        "firstname": "Devansh",
+        "lastname": "Rathor",
+        "roles": ["admin"],
+    },
+    {
+        "email": "test.user@example.com",
+        "password": "password",
+        "firstname": "Test",
+        "lastname": "User",
+        "roles": ["user"],
+    },
+    {
+        "email": "test.admin@example.com",
+        "password": "password",
+        "firstname": "Test",
+        "lastname": "Admin",
+        "roles": ["admin"],
+    },
+    {
+        "email": "test.librarian@example.com",
+        "password": "password",
+        "firstname": "Test",
+        "lastname": "Librarian",
+        "roles": ["librarian"],
+    },
+]
+
 
 # one time setup
 with app.app_context():
     # Create User to test with if it doesn't exist
     db.create_all()
+
     app.security.datastore.find_or_create_role(name="user", description="User Role")
     app.security.datastore.find_or_create_role(name="admin", description="Admin Role")
     app.security.datastore.find_or_create_role(name="librarian", description="Librarian Role")
 
-    if not app.security.datastore.find_user(email="test@me.com"):
-        app.security.datastore.create_user(
-            email="test@me.com",
-            password=hash_password("password"),
-            firstname="Test",
-            lastname="Admin",
-            roles=["user"],
-        )
+    for user in sample_users:
+        if not app.security.datastore.find_user(user["email"]):
+            app.security.datastore.create_user(
+                email=user["email"],
+                password=hash_password(user["password"]),
+                firstname=user["firstname"],
+                lastname=user["lastname"],
+                roles=user["roles"],
+            )
     db.session.commit()
 
 

@@ -29,9 +29,7 @@ class User(db.Model, UserMixin):
     current_login_ip = Column(String(100))
     login_count = Column(Integer)
     fs_uniquifier = Column(String(255), unique=True, nullable=False)
-    roles = db.relationship(
-        "Role", secondary="roles_users", backref=db.backref("users", lazy="dynamic")
-    )
+    roles = db.relationship("Role", secondary="roles_users", backref=db.backref("users", lazy="dynamic"))
 
     def get_security_payload(self):
         rv = super().get_security_payload()
@@ -58,7 +56,7 @@ class Section(db.Model):
     id = Column(Integer, autoincrement=True, primary_key=True)
     name = Column(String(50), nullable=False)
     description = Column(String(255))
-    image = Column(String(255))
+    image = Column(String(255), nullable=True)
     books = db.relationship("Book", backref="section", lazy=True)
 
 
@@ -67,11 +65,13 @@ class Book(db.Model):
     id = Column(Integer, autoincrement=True, primary_key=True)
     title = Column(String(50), nullable=False)
     author = Column(String(50), nullable=False)
-    section_id = Column(Integer, ForeignKey("section.id"), nullable=False)
     description = Column(String(255))
-    content = Column(String(255))
-    image = Column(String(1023))
+    isbn = Column(String(50), nullable=False)
+    year = Column(Integer, nullable=False)
+    content = Column(String(255))  # file path
+    image = Column(String(255), nullable=True)  # base64 encoded image
     date_added = Column(DateTime())
+    section: Section = db.relationship("Section", backref="books", lazy=True)
 
 
 class Comment(db.Model):

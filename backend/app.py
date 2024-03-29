@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_restful import Api
 from flask_security import Security
 
-from app.api import TestAPI
+from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI
 from app.config import LocalDevelopmentConfig
 from app.models import db, user_datastore
 
@@ -31,7 +31,12 @@ app.app_context().push()
 from app.routes import *
 
 # Add resources
-api.add_resource(TestAPI, "/api/test")
+api.add_resource(SearchAPI, "/search")
+api.add_resource(BookAPI, "/books", "/books/<int:id>")
+api.add_resource(SectionAPI, "/sections", "/sections/<int:id>")
+api.add_resource(CommentAPI, "/comments", "/comments/<int:id>")
+api.add_resource(RatingAPI, "/ratings", "/ratings/<int:id>")
+api.add_resource(BookIssueAPI, "/book-issues", "/book-issues/<int:id>")
 
 
 # one time setup
