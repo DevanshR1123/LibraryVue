@@ -1,10 +1,11 @@
-from flask import Flask, render_template_string, request
-from flask_security import Security, auth_required, hash_password
+from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
-from app.models import db, user_datastore, Book
-from app.config import LocalDevelopmentConfig
+from flask_security import Security
+
 from app.api import TestAPI
+from app.config import LocalDevelopmentConfig
+from app.models import db, user_datastore
 
 # Create app
 app = Flask(__name__)
@@ -26,9 +27,8 @@ api = Api(app)
 
 app.app_context().push()
 
-
+# Import routes
 from app.routes import *
-
 
 # Add resources
 api.add_resource(TestAPI, "/api/test")
@@ -36,23 +36,8 @@ api.add_resource(TestAPI, "/api/test")
 
 # one time setup
 with app.app_context():
-    # Create User to test with if it doesn't exist
     db.create_all()
-    app.security.datastore.find_or_create_role(name="user", description="User Role")
-    app.security.datastore.find_or_create_role(name="admin", description="Admin Role")
-    app.security.datastore.find_or_create_role(
-        name="librarian", description="Librarian Role"
-    )
 
-    if not app.security.datastore.find_user(email="test@me.com"):
-        app.security.datastore.create_user(
-            email="test@me.com",
-            password=hash_password("password"),
-            firstname="Test",
-            lastname="Admin",
-            roles=["user"],
-        )
-    db.session.commit()
 
 if __name__ == "__main__":
     app.run()
