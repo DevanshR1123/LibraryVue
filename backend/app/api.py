@@ -1,22 +1,16 @@
 import base64
 import os
-import sys
 import uuid
 
-from flask import request, current_app as app
-from flask_restful import Api, Resource, fields, marshal, reqparse
+from flask import current_app as app
+from flask import request
+from flask_restful import Api, Resource, marshal
 from flask_security import auth_required, roles_required
 
 from app.api_helpers import *
-from app.models import Book, BookIssue, Comment, Rating, Section, User, db
+from app.models import Book, Comment, Rating, Section, db
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-print(sys.path)
-
-BOOKS_DIR = os.path.join(sys.path[0], "books")
-
-if not os.path.exists(BOOKS_DIR):
-    os.makedirs(BOOKS_DIR)
+BOOKS_DIR = app.config["BOOKS_DIR"]
 
 api: Api = app.api
 

@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_security import Security, hash_password
 from app.config import LocalDevelopmentConfig
-from app.models import db, user_datastore
+from app.models import db, user_datastore, Section
 
 # Create app
 app = Flask(__name__)
@@ -14,8 +14,6 @@ db.init_app(app)
 
 # Setup Flask-Security
 app.security = Security(app, user_datastore)
-
-app.app_context().push()
 
 sample_users = [
     {
@@ -59,7 +57,7 @@ with app.app_context():
     app.security.datastore.find_or_create_role(name="librarian", description="Librarian Role")
 
     for user in sample_users:
-        if not app.security.datastore.find_user(user["email"]):
+        if not app.security.datastore.find_user(email=user["email"]):
             app.security.datastore.create_user(
                 email=user["email"],
                 password=hash_password(user["password"]),
@@ -68,6 +66,14 @@ with app.app_context():
                 roles=user["roles"],
             )
     db.session.commit()
+
+    if not Section.query.filter(Section.name == "Comedy").first():
+        comedy = Section(name="Comedy", description="Funny Books")
+        db.session.add(comedy)
+        db.session.commit()
+
+        print("Added Comedy Section")
+        print(comedy.books)
 
 
 if __name__ == "__main__":

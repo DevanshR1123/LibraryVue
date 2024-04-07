@@ -7,8 +7,18 @@ from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookI
 from app.config import LocalDevelopmentConfig
 from app.models import db, user_datastore
 
+import os
+
 # Create app
 app = Flask(__name__)
+
+# Create books directory
+BOOKS_DIR = os.path.join(os.path.dirname(__file__), "./static/books")
+
+if not os.path.exists(BOOKS_DIR):
+    os.makedirs(BOOKS_DIR)
+
+app.config["BOOKS_DIR"] = BOOKS_DIR
 
 # Load configuration
 app.config.from_object(LocalDevelopmentConfig)

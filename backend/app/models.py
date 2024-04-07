@@ -57,7 +57,7 @@ class Section(db.Model):
     name = Column(String(50), nullable=False)
     description = Column(String(255))
     image = Column(String(255), nullable=True)
-    books = db.relationship("Book", backref="section", lazy=True)
+    books = db.relationship("Book", backref="section_id", lazy="dynamic")
 
 
 class Book(db.Model):
@@ -71,7 +71,7 @@ class Book(db.Model):
     content = Column(String(255))  # file path
     image = Column(String(255), nullable=True)  # base64 encoded image
     date_added = Column(DateTime())
-    section: Section = db.relationship("Section", backref="books", lazy=True)
+    section_id = Column(Integer, ForeignKey("section.id"), nullable=False)
 
 
 class Comment(db.Model):
