@@ -66,15 +66,5 @@ with app.app_context():
                 roles=user["roles"],
             )
     db.session.commit()
-
-    if not Section.query.filter(Section.name == "Comedy").first():
-        comedy = Section(name="Comedy", description="Funny Books")
-        db.session.add(comedy)
-        db.session.commit()
-
-        print("Added Comedy Section")
-        print(comedy.books)
-
-
-if __name__ == "__main__":
-    app.run()
+    
+    print("Database setup completed successfully...")

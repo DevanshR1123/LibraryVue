@@ -7,7 +7,7 @@ from app.models import Book, db, user_datastore
 
 @app.route("/")
 def home():
-    return render_template_string("Hello Home")
+    return render_template_string("Welcome to LibraryVue API")
 
 
 @app.route("/books/content/<int:id>")

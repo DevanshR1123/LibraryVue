@@ -12,8 +12,6 @@ from app.models import Book, Comment, Rating, Section, db
 
 BOOKS_DIR = app.config["BOOKS_DIR"]
 
-api: Api = app.api
-
 
 class SearchAPI(Resource):
     def get(self):
@@ -27,10 +25,7 @@ class SearchAPI(Resource):
             or Book.query.filter(Book.section.name.ilike(f"%{q}%")).all()
         )
 
-        if not books:
-            return {"message": "No books found"}, 404
-
-        return marshal({"books": books}, books_resource_fields)
+        return marshal(books, books_resource_fields)
 
 
 class BookAPI(Resource):
@@ -40,10 +35,8 @@ class BookAPI(Resource):
             return marshal(book, book_resource_fields)
         else:
             books = Book.query.all()
-            if not books:
-                return {"message": "No books found"}, 404
 
-            return marshal({"books": books}, books_resource_fields)
+            return marshal(books, books_resource_fields)
 
     @auth_required("token")
     @roles_required("admin", "librarian")
@@ -115,10 +108,7 @@ class SectionAPI(Resource):
             return marshal(section, section_resource_fields)
         else:
             sections = Section.query.all()
-            if not sections:
-                return {"message": "No sections found"}, 404
-
-            return marshal({"sections": sections}, sections_resource_fields)
+            return marshal(sections, sections_resource_fields)
 
     @auth_required("token")
     @roles_required("admin", "librarian")
@@ -162,10 +152,7 @@ class CommentAPI(Resource):
             return marshal(comment, comment_resource_fields)
         else:
             comments = Comment.query.all()
-            if not comments:
-                return {"message": "No comments found"}, 404
-
-            return marshal({"comments": comments}, comments_resource_fields)
+            return marshal(comments, comments_resource_fields)
 
     @auth_required("token")
     def post(self):
@@ -208,34 +195,26 @@ class RatingAPI(Resource):
         if not ratings:
             return {"message": "No ratings found"}, 404
 
-        return marshal({"ratings": ratings}, ratings_resource_fields)
+        return marshal(ratings, ratings_resource_fields)
 
     @auth_required("token")
     def post(self):
         data = new_rating_parser.parse_args()
-        rating = Rating(
-            user_id=data.get("user_id"),
-            book_id=data.get("book_id"),
-            rating=data.get("rating"),
-        )
-        db.session.add(rating)
-        db.session.commit()
-        return marshal(rating, rating_resource_fields)
 
-    @auth_required("token")
-    def put(self, id):
-        data = new_rating_parser.parse_args()
-        rating: Rating = Rating.query.get_or_404(id, "Rating not found")
-        rating.rating = data.get("rating")
-        db.session.commit()
-        return marshal(rating, rating_resource_fields)
+        user_id = data.get("user_id")
+        book_id = data.get("book_id")
+        rating = data.get("rating")
 
-    @auth_required("token")
-    def delete(self, id):
-        rating = Rating.query.get_or_404(id, "Rating not found")
-        db.session.delete(rating)
+        rating = Rating.query.filter_by(user_id=user_id, book_id=book_id).first()
+
+        if rating:
+            rating.rating = rating
+        else:
+            rating = Rating(user_id=user_id, book_id=book_id, rating=rating)
+            db.session.add(rating)
         db.session.commit()
-        return {"message": "Rating deleted successfully"}
+
+        return marshal(rating, rating_resource_fields)
 
 
 class BookIssueAPI(Resource):

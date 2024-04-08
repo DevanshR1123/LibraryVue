@@ -14,9 +14,8 @@ book_resource_fields = {
     "created_at": DateTime,
 }
 
-books_resource_fields = {
-    "books": List(Nested(book_resource_fields)),
-}
+books_resource_fields = List(Nested(book_resource_fields))
+
 
 book_parser = (
     reqparse.RequestParser()
@@ -40,9 +39,8 @@ section_resource_fields = {
     "books": List(Nested(book_resource_fields)),
 }
 
-sections_resource_fields = {
-    "sections": List(Nested(section_resource_fields)),
-}
+sections_resource_fields = List(Nested(section_resource_fields))
+
 
 section_parser = (
     reqparse.RequestParser()
@@ -62,9 +60,8 @@ comment_resource_fields = {
     "timestamp": DateTime,
 }
 
-comments_resource_fields = {
-    "comments": List(Nested(comment_resource_fields)),
-}
+comments_resource_fields = List(Nested(comment_resource_fields))
+
 
 comment_parser = (
     reqparse.RequestParser()
@@ -82,9 +79,8 @@ rating_resource_fields = {
     "rating": Integer,
 }
 
-ratings_resource_fields = {
-    "ratings": List(Nested(rating_resource_fields)),
-}
+ratings_resource_fields = List(Nested(rating_resource_fields))
+
 
 fetch_rating_parser = (
     reqparse.RequestParser()
@@ -111,9 +107,8 @@ book_issue_resource_fields = {
     "returned": Boolean,
 }
 
-book_issues_resource_fields = {
-    "book_issues": List(Nested(book_issue_resource_fields)),
-}
+book_issues_resource_fields = List(Nested(book_issue_resource_fields))
+
 
 book_issue_parser = (
     reqparse.RequestParser()

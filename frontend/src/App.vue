@@ -45,6 +45,7 @@ onMounted(() => {
     <RouterView />
   </main>
 </template>
+
 <style scoped>
 header {
   display: grid;

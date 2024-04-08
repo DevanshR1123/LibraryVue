@@ -3,7 +3,6 @@ from flask_cors import CORS
 from flask_restful import Api
 from flask_security import Security
 
-from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI
 from app.config import LocalDevelopmentConfig
 from app.models import db, user_datastore
 
@@ -37,10 +36,13 @@ api = Api(app)
 
 app.app_context().push()
 
+
 # Import routes
 from app.routes import *
 
 # Add resources
+from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI
+
 api.add_resource(SearchAPI, "/search")
 api.add_resource(BookAPI, "/books", "/books/<int:id>")
 api.add_resource(SectionAPI, "/sections", "/sections/<int:id>")

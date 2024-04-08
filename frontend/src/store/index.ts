@@ -19,7 +19,11 @@ export const userStore = createStore<State>({
     isAdmin: (state) => state.user!.roles.includes('admin'),
     isLibrarian: (state) => state.user!.roles.includes('librarian'),
     isUser: (state) => state.user!.roles.includes('user'),
-    isAuth: (state) => !!state.user
+    isAuth: (state) => !!state.user,
+    authToken: (state) => state.user!.authentication_token,
+    userId: (state) => state.user!.id,
+    role: (state) => state.user!.roles[0].toLocaleUpperCase(),
+    user: (state) => state.user
   },
 
   mutations: {

@@ -57,7 +57,7 @@ class Section(db.Model):
     name = Column(String(50), nullable=False)
     description = Column(String(255))
     image = Column(String(255), nullable=True)
-    books = db.relationship("Book", backref="section_id", lazy="dynamic")
+    books = db.relationship("Book", backref="section", lazy="dynamic")
 
 
 class Book(db.Model):
