@@ -25,10 +25,10 @@ if (!isAuth.value) {
 
 <template>
   <div class="dashboard-view">
-    <section class="dashboard-header">
+    <div class="dashboard-header">
       <h1>Dashboard</h1>
       <p>Welcome, {{ fullName }}</p>
-    </section>
+    </div>
     <Suspense>
       <LibrarianDashboard v-if="isLibrarian" />
       <UserDashboard v-else-if="isUser" />
@@ -47,8 +47,6 @@ if (!isAuth.value) {
 
 .dashboard-header {
   padding: 1rem 2rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
 
   & button {
     margin-top: 1rem;
@@ -59,9 +57,7 @@ if (!isAuth.value) {
   }
 
   & h1 {
-    text-align: center;
-    font-weight: bold;
-    font-size: 2.5rem;
+    margin-bottom: 1rem;
   }
 
   & button {

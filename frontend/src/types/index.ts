@@ -7,12 +7,20 @@ export interface User {
   authentication_token: string
 }
 
-export interface LoginResponse {
-  meta: { code: number }
+interface LoginSuccess {
+  meta: { code: 200 }
+  response: { user: User }
+}
+
+interface LoginFailure {
+  meta: { code: 400 }
   response: {
-    user: User
+    errors: string[]
+    field_errors: { [key: string]: string[] }
   }
 }
+
+export type LoginResponse = LoginSuccess | LoginFailure
 
 // export interface Book {
 //   id: number

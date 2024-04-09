@@ -8,9 +8,13 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
+const errors = ref<string[]>([])
+const loading = ref(false)
+
 const router = useRouter()
 
 const signup = async () => {
+  loading.value = true
   if (password.value !== confirmPassword.value) {
     alert('Passwords do not match')
     return
@@ -30,9 +34,9 @@ const signup = async () => {
     body: JSON.stringify(user)
   })
 
-  if (res.ok) {
-    router.push('/login')
-  }
+  if (res.ok) router.push('/login')
+
+  loading.value = false
 }
 </script>
 
@@ -65,7 +69,14 @@ const signup = async () => {
         <input type="password" id="confirm-password" v-model="confirmPassword" required />
       </label>
 
-      <button type="submit">Signup</button>
+      <div class="error" v-if="errors.length">
+        <p v-for="error in errors" :key="error">{{ error }}!</p>
+      </div>
+
+      <button type="submit" :disabled="loading">
+        Signup
+        <div class="loader" v-if="loading"></div>
+      </button>
     </form>
   </section>
 </template>
@@ -83,9 +94,7 @@ const signup = async () => {
   display: grid;
   gap: 2rem;
 
-  margin-bottom: 10vh;
-
-  width: 32rem;
+  width: fit-content;
 }
 
 h1 {
@@ -123,7 +132,7 @@ input {
 button {
   grid-column: 1 / -1;
 
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 0.5rem;
   border: none;
   border-radius: 0.25rem;
@@ -137,8 +146,24 @@ button {
   background-color: var(--color-primary);
   color: var(--color-background);
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
   &:hover {
     background-color: var(--color-primary-dark);
   }
+
+  &:disabled {
+    background-color: var(--color-primary-dark);
+    cursor: not-allowed;
+  }
+}
+
+.loader {
+  border-color: var(--color-background) transparent var(--color-background) transparent;
+  width: 1em;
+  margin: 0;
 }
 </style>

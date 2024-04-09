@@ -15,7 +15,6 @@ const baseLinks = [
 
 const authLinks = [
   { path: '/books', name: 'Books' },
-  { path: '/authors', name: 'Authors' },
   { path: '/dashboard', name: 'Dashboard' }
 ]
 
@@ -42,10 +41,23 @@ onMounted(() => {
     <NavAuth />
   </header>
   <main>
-    <RouterView />
+    <RouterView v-slot="{ Component }">
+      <template v-if="Component">
+        <Transition mode="out-in">
+          <KeepAlive>
+            <Suspense>
+              <!-- main content -->
+              <component :is="Component"></component>
+
+              <!-- loading state -->
+              <template #fallback> <div class="loader"></div> </template>
+            </Suspense>
+          </KeepAlive>
+        </Transition>
+      </template>
+    </RouterView>
   </main>
 </template>
-
 <style scoped>
 header {
   display: grid;
@@ -55,6 +67,9 @@ header {
   color: var(--color-text);
   padding: 1rem;
   gap: 2rem;
+
+  position: sticky;
+  top: 0;
 }
 
 h1 {

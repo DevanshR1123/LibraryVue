@@ -4,13 +4,14 @@ import uuid
 
 from flask import current_app as app
 from flask import request
-from flask_restful import Api, Resource, marshal
+from flask_restful import Resource, marshal
 from flask_security import auth_required, roles_required
 
 from app.api_helpers import *
 from app.models import Book, Comment, Rating, Section, db
 
 BOOKS_DIR = app.config["BOOKS_DIR"]
+IMAGE_DIR = app.config["IMAGE_DIR"]
 
 
 class SearchAPI(Resource):
@@ -35,7 +36,6 @@ class BookAPI(Resource):
             return marshal(book, book_resource_fields)
         else:
             books = Book.query.all()
-
             return marshal(books, books_resource_fields)
 
     @auth_required("token")
@@ -54,8 +54,12 @@ class BookAPI(Resource):
         if not os.path.exists(os.path.join(BOOKS_DIR, content)):
             return {"message": "Content not saved"}, 500
 
-        image = data.get("image")
-        image = base64.b64encode(image.read()).decode("utf-8") if image else None
+        image: FileStorage = data.get("image")
+        if image:
+            image_path = f"{uuid.uuid4()}_{image.filename}"
+            image.save(os.path.join(IMAGE_DIR, image_path))
+            if not os.path.exists(os.path.join(IMAGE_DIR, image_path)):
+                return {"message": "Image not saved"}, 500
 
         book = Book(
             title=data.get("title"),
@@ -115,7 +119,12 @@ class SectionAPI(Resource):
     def post(self):
         data = section_parser.parse_args()
 
-        image = base64.b64encode(data.get("image").read()).decode("utf-8") if data.get("image") else None
+        image: FileStorage = data.get("image")
+        if image:
+            image_path = f"{uuid.uuid4()}_{image.filename}"
+            image.save(os.path.join(IMAGE_DIR, image_path))
+            if not os.path.exists(os.path.join(IMAGE_DIR, image_path)):
+                return {"message": "Image not saved"}, 500
 
         section = Section(name=data.get("name"), description=data.get("description"), image=image)
 

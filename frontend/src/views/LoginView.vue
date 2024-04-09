@@ -16,19 +16,27 @@ if (isAuth) {
 
 const email = ref('')
 const password = ref('')
+const errors = ref<string[]>([])
+const loading = ref(false)
 
 const login = async () => {
-  const user = { email: email.value, password: password.value }
+  loading.value = true
+  const userCreds = { email: email.value, password: password.value }
   const res: LoginResponse = await fetch('http://localhost:5000/login?include_auth_token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(user)
+    body: JSON.stringify(userCreds)
   }).then((res: Response) => res.json())
 
-  if (res.meta.code === 200) {
+  if (res.meta.code === 200 && 'user' in res.response) {
     loginAction(res.response.user)
     router.push('/')
+  } else if (res.meta.code === 400 && 'errors' in res.response) {
+    errors.value = res.response.errors
+    password.value = ''
   }
+
+  loading.value = false
 }
 </script>
 
@@ -44,7 +52,13 @@ const login = async () => {
         >Password
         <input type="password" id="password" v-model="password" required />
       </label>
-      <button type="submit">Login</button>
+      <div class="error" v-if="errors.length">
+        <p v-for="error in errors" :key="error">{{ error }}!</p>
+      </div>
+      <button type="submit" :disabled="loading">
+        Login
+        <div class="loader" v-if="loading"></div>
+      </button>
     </form>
   </section>
 </template>
@@ -62,9 +76,8 @@ const login = async () => {
   display: grid;
   gap: 2rem;
 
-  margin-bottom: 10vh;
-
-  width: 24rem;
+  min-width: 24rem;
+  width: fit-content;
 }
 
 h1 {
@@ -94,7 +107,7 @@ input {
 }
 
 button {
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 0.5rem;
   border: none;
   border-radius: 0.25rem;
@@ -108,8 +121,29 @@ button {
   background-color: var(--color-primary);
   color: var(--color-background);
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
   &:hover {
     background-color: var(--color-primary-dark);
   }
+
+  &:disabled {
+    background-color: var(--color-primary-dark);
+    cursor: not-allowed;
+  }
+}
+
+.error {
+  font-size: 0.9rem;
+  color: var(--color-error);
+}
+
+.loader {
+  border-color: var(--color-background) transparent var(--color-background) transparent;
+  width: 1em;
+  margin: 0;
 }
 </style>

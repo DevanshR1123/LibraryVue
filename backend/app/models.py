@@ -69,7 +69,7 @@ class Book(db.Model):
     isbn = Column(String(50), nullable=False)
     year = Column(Integer, nullable=False)
     content = Column(String(255))  # file path
-    image = Column(String(255), nullable=True)  # base64 encoded image
+    image = Column(String(255), nullable=True)  # file path
     date_added = Column(DateTime())
     section_id = Column(Integer, ForeignKey("section.id"), nullable=False)
 

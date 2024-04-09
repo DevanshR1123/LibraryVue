@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { getBooks, getSections } from '@/utils/api'
 import BookCard from '@/components/books/BookCard.vue'
+import { defineProps } from 'vue'
+import { type Book, type Section } from '@/types'
 
-const books = await getBooks()
-const sections = await getSections()
+const { books, sections } = defineProps({
+  books: {
+    type: Array as () => Book[],
+    required: true
+  },
+  sections: {
+    type: Array as () => Section[],
+    required: true
+  }
+})
 
-console.log(books, sections)
+// console.log(books, sections)
 </script>
 
 <template>

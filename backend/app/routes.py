@@ -16,6 +16,11 @@ def get_book_content(id):
     return send_from_directory(app.config["BOOKS_DIR"], book.content, as_attachment=True)
 
 
+@app.route("/images/<path:filename>")
+def get_image(filename):
+    return send_from_directory(app.config["IMAGE_DIR"], filename)
+
+
 @app.post("/signup")
 def signup():
     data = request.get_json()
