@@ -63,12 +63,11 @@ const logout = async () => {
 .logout-btn {
   background-color: var(--color-primary);
   color: var(--color-background);
-
   border: 2px solid var(--color-primary);
 
   &:hover {
-    background-color: var(--color-primary-light);
-    color: var(--color-secondary);
+    color: var(--color-primary);
+    background-color: var(--color-background);
   }
 }
 

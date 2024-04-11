@@ -12,6 +12,10 @@ book_resource_fields = {
     "isbn": String,
     "year": Integer,
     "created_at": DateTime,
+    "description": String,
+    "content": String,
+    "image": String,
+    "section_id": Integer,
 }
 
 books_resource_fields = List(Nested(book_resource_fields))
@@ -24,7 +28,8 @@ book_parser = (
     .add_argument("isbn", type=str, required=True, location="form", help="ISBN is required")
     .add_argument("year", type=int, required=True, location="form", help="Year is required")
     .add_argument("description", type=str, required=True, location="form", help="Description is required")
-    .add_argument("content", type=FileStorage, required=False, location="files", help="Content is required")
+    .add_argument("section_id", type=int, required=True, location="form", help="Section ID is required")
+    .add_argument("content", type=FileStorage, required=True, location="files", help="Content is required")
     .add_argument("image", type=FileStorage, required=False, location="files", help="Image is required")
 )
 
@@ -39,7 +44,7 @@ section_resource_fields = {
     "books": List(Nested(book_resource_fields)),
 }
 
-sections_resource_fields = List(Nested(section_resource_fields))
+sections_resource_fields = Nested(List(Nested(section_resource_fields)))
 
 
 section_parser = (

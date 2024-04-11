@@ -6,6 +6,8 @@ import SignupView from '@/views/SignupView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import BooksView from '@/views/BooksView.vue'
 import BookView from '@/views/BookView.vue'
+import SectionsView from '@/views/SectionsView.vue'
+import SectionView from '@/views/SectionView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,15 +61,31 @@ const router = createRouter({
       path: '/books',
       name: 'books',
       component: BooksView,
-      meta: {
-        requiresAuth: true,
-        title: 'Books'
-      }
+      meta: { requiresAuth: true }
     },
     {
       path: '/books/:id',
       name: 'book',
       component: BookView,
+      meta: {
+        requiresAuth: true,
+        title: 'Books'
+      },
+      props: true
+    },
+    {
+      path: '/sections',
+      name: 'sections',
+      component: SectionsView,
+      meta: {
+        requiresAuth: true,
+        title: 'Sections'
+      }
+    },
+    {
+      path: '/sections/:id',
+      name: 'section',
+      component: SectionView,
       meta: { requiresAuth: true },
       props: true
     }

@@ -50,6 +50,7 @@ sample_users = [
 # one time setup
 with app.app_context():
     # Create User to test with if it doesn't exist
+    db.drop_all()
     db.create_all()
 
     app.security.datastore.find_or_create_role(name="user", description="User Role")
@@ -66,5 +67,5 @@ with app.app_context():
                 roles=user["roles"],
             )
     db.session.commit()
-    
+
     print("Database setup completed successfully...")

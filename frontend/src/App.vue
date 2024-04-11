@@ -15,6 +15,7 @@ const baseLinks = [
 
 const authLinks = [
   { path: '/books', name: 'Books' },
+  { path: '/sections', name: 'Sections' },
   { path: '/dashboard', name: 'Dashboard' }
 ]
 
@@ -22,6 +23,8 @@ const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : base
 
 onMounted(() => {
   store.dispatch('checkAuth')
+  store.dispatch('getBooks')
+  store.dispatch('getSections')
 })
 </script>
 
@@ -46,10 +49,7 @@ onMounted(() => {
         <Transition mode="out-in">
           <KeepAlive>
             <Suspense>
-              <!-- main content -->
               <component :is="Component"></component>
-
-              <!-- loading state -->
               <template #fallback> <div class="loader"></div> </template>
             </Suspense>
           </KeepAlive>

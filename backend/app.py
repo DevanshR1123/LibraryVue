@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_security import Security
 
 from app.config import LocalDevelopmentConfig
-from app.models import db, user_datastore
+from app.models import db, user_datastore, Role, User, Book, Section, Comment, Rating, BookIssue
 
 import os
 
@@ -61,5 +61,6 @@ with app.app_context():
     db.create_all()
 
 
+# Run app
 if __name__ == "__main__":
     app.run()

@@ -71,7 +71,7 @@ class Book(db.Model):
     content = Column(String(255))  # file path
     image = Column(String(255), nullable=True)  # file path
     date_added = Column(DateTime())
-    section_id = Column(Integer, ForeignKey("section.id"), nullable=False)
+    section_id = Column(Integer, ForeignKey("section.id"), nullable=True)
 
 
 class Comment(db.Model):

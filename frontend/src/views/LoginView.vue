@@ -30,6 +30,8 @@ const login = async () => {
 
   if (res.meta.code === 200 && 'user' in res.response) {
     loginAction(res.response.user)
+    email.value = ''
+    password.value = ''
     router.push('/')
   } else if (res.meta.code === 400 && 'errors' in res.response) {
     errors.value = res.response.errors

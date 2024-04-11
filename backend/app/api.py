@@ -1,5 +1,7 @@
 import base64
+import datetime
 import os
+import re
 import uuid
 
 from flask import current_app as app
@@ -36,10 +38,10 @@ class BookAPI(Resource):
             return marshal(book, book_resource_fields)
         else:
             books = Book.query.all()
-            return marshal(books, books_resource_fields)
+            return marshal(books, book_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def post(self):
         data = book_parser.parse_args()
 
@@ -54,6 +56,8 @@ class BookAPI(Resource):
         if not os.path.exists(os.path.join(BOOKS_DIR, content)):
             return {"message": "Content not saved"}, 500
 
+        image_path = None
+
         image: FileStorage = data.get("image")
         if image:
             image_path = f"{uuid.uuid4()}_{image.filename}"
@@ -61,13 +65,19 @@ class BookAPI(Resource):
             if not os.path.exists(os.path.join(IMAGE_DIR, image_path)):
                 return {"message": "Image not saved"}, 500
 
+        for key in data:
+            print(key, data[key], type(data[key]))
+
         book = Book(
             title=data.get("title"),
             author=data.get("author"),
-            section=data.get("section"),
             description=data.get("description"),
+            isbn=data.get("isbn"),
+            year=data.get("year"),
             content=content,
-            image=image,
+            image=image_path,
+            section=Section.query.get_or_404(data.get("section_id"), "Section not found"),
+            date_added=datetime.datetime.now(),
         )
 
         db.session.add(book)
@@ -75,7 +85,7 @@ class BookAPI(Resource):
         return marshal(book, book_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def put(self, id):
         data = book_parser.parse_args()
         book: Book = Book.query.get_or_404(id, "Book not found")
@@ -97,7 +107,7 @@ class BookAPI(Resource):
         return marshal(book, book_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def delete(self, id):
         book = Book.query.get_or_404(id, "Book not found")
         db.session.delete(book)
@@ -112,28 +122,33 @@ class SectionAPI(Resource):
             return marshal(section, section_resource_fields)
         else:
             sections = Section.query.all()
-            return marshal(sections, sections_resource_fields)
+            return marshal(sections, section_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def post(self):
         data = section_parser.parse_args()
 
         image: FileStorage = data.get("image")
+
+        print(data, image)
+
+        image_path = None
+
         if image:
             image_path = f"{uuid.uuid4()}_{image.filename}"
             image.save(os.path.join(IMAGE_DIR, image_path))
             if not os.path.exists(os.path.join(IMAGE_DIR, image_path)):
                 return {"message": "Image not saved"}, 500
 
-        section = Section(name=data.get("name"), description=data.get("description"), image=image)
+        section = Section(name=data.get("name"), description=data.get("description"), image=image_path)
 
         db.session.add(section)
         db.session.commit()
         return marshal(section, section_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def put(self, id):
         data = section_parser.parse_args()
 
@@ -146,7 +161,7 @@ class SectionAPI(Resource):
         return marshal(section, section_resource_fields)
 
     @auth_required("token")
-    @roles_required("admin", "librarian")
+    # @roles_required("admin", "librarian")
     def delete(self, id):
         section = Section.query.get_or_404(id, "Section not found")
         db.session.delete(section)
@@ -161,7 +176,7 @@ class CommentAPI(Resource):
             return marshal(comment, comment_resource_fields)
         else:
             comments = Comment.query.all()
-            return marshal(comments, comments_resource_fields)
+            return marshal(comments, comment_resource_fields)
 
     @auth_required("token")
     def post(self):
@@ -204,7 +219,7 @@ class RatingAPI(Resource):
         if not ratings:
             return {"message": "No ratings found"}, 404
 
-        return marshal(ratings, ratings_resource_fields)
+        return marshal(ratings, rating_resource_fields)
 
     @auth_required("token")
     def post(self):

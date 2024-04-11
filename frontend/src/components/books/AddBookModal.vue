@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { ref, defineProps, onMounted, reactive } from 'vue'
-import { type Section } from '@/types'
-// import { createBook } from '@/utils/api'
+import { ref, onMounted, reactive, computed } from 'vue'
+import { createBook } from '@/utils/api'
 import BookPlaceholder from '@/components/BookPlaceholder.vue'
+import { useStore } from '@/store'
+import { toast } from 'vue3-toastify'
 
-const { sections } = defineProps({
-  sections: {
-    type: Array as () => Section[],
-    required: true
-  }
-})
-
-// console.log(sections)
+const store = useStore()
+const sections = computed(() => store.state.sections)
 
 const book = reactive({
   title: '',
   author: '',
   description: '',
   isbn: '',
-  year: null as null | number,
-  section: null as null | number
+  _year: new Date().toISOString().split('T')[0].split('-').slice(0, 2).join('-'),
+  section: ''
 })
 
 const content = ref<HTMLInputElement>()
@@ -27,10 +22,7 @@ const image = ref<HTMLInputElement>()
 
 const imgSrc = ref<string>()
 
-const addBook = async () => {
-  const { title, author, description, isbn, year } = book
-  console.log(title, author, description, isbn, year, content.value, image.value)
-}
+const year = computed(() => new Date(book._year).getFullYear())
 
 const dialog = ref<HTMLDialogElement>()
 
@@ -38,8 +30,46 @@ const showModal = () => {
   dialog.value!.showModal()
 }
 
-const hideModal = () => {
+const closeModal = () => {
   dialog.value!.close()
+}
+
+const addBook = async () => {
+  const { title, author, description, isbn } = book
+
+  try {
+    await createBook({
+      title,
+      author,
+      description,
+      isbn,
+      year: year.value,
+      content: content.value && content.value.files?.[0] ? content.value.files?.[0] : null,
+      image: image.value && image.value.files?.[0] ? image.value.files?.[0] : null,
+      section_id: parseInt(book.section || '0')
+    })
+
+    store.dispatch('getBooks')
+
+    book.title = ''
+    book.author = ''
+    book.description = ''
+    book.isbn = ''
+    book.section = ''
+    book._year = new Date().toISOString().split('T')[0].split('-').slice(0, 2).join('-')
+
+    content.value!.value = ''
+    image.value!.value = ''
+
+    imgSrc.value = ''
+
+    toast.success('Book added successfully')
+  } catch (error) {
+    console.error(error)
+    toast.error('Failed to add book')
+  }
+
+  closeModal()
 }
 
 onMounted(() => {
@@ -54,6 +84,21 @@ onMounted(() => {
       imgSrc.value = reader.result as string
     }
     reader.readAsDataURL(file)
+  })
+
+  content.value!.addEventListener('change', (e) => {
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
+
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      toast.error('Please select a PDF file')
+      target.value = ''
+      return
+    }
+
+    if (!book.title) book.title = file.name.split('.').slice(0, -1).join('.')
   })
 })
 </script>
@@ -79,16 +124,16 @@ onMounted(() => {
 
       <label for="year" class="year"
         >Year
-        <input type="number" id="year" name="year" required v-model="book.year" />
+        <input type="month" id="year" name="year" required v-model="book._year" />
       </label>
 
       <label for="section" class="section"
         >Section
         <select id="section" name="section" required v-model="book.section" v-if="sections.length">
+          <option value="" disabled selected>Select a section</option>
           <option v-for="section in sections" :key="section.id" :value="section.id">
             {{ section.name }}
           </option>
-          <option value="" disabled selected>Select a section</option>
         </select>
         <div class="no-sections" v-else>
           <p>Please create a section first</p>
@@ -107,7 +152,7 @@ onMounted(() => {
 
       <label for="image" class="image"
         >Image
-        <input type="file" id="image" name="image" required ref="image" accept="image/*" />
+        <input type="file" id="image" name="image" ref="image" accept="image/*" />
       </label>
 
       <label for="content" class="content"
@@ -124,7 +169,7 @@ onMounted(() => {
 
       <div class="btns">
         <button type="submit">Add</button>
-        <button type="button" @click="hideModal">Cancel</button>
+        <button type="button" @click="closeModal">Cancel</button>
       </div>
 
       <div class="book-card">
@@ -132,13 +177,13 @@ onMounted(() => {
         <div class="book-card-content">
           <h3 class="title">{{ book.title ? book.title : '--Title--' }}</h3>
           <p class="author">{{ book.author ? book.author : '--Author--' }}</p>
-          <p class="year">{{ book.year ? book.year : '--Year--' }}</p>
+          <p class="year">{{ year ? year : '--Year--' }}</p>
         </div>
       </div>
     </form>
   </dialog>
 
-  <button @click="showModal">Add Book</button>
+  <button class="add-btn" @click="showModal">Add Book</button>
 </template>
 
 <style scoped>
@@ -229,15 +274,6 @@ h2 {
   grid-column: 1 / -1;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  background-color: var(--color-primary);
-  color: white;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  font-size: 1.25rem;
-}
-
 .btns {
   display: grid;
   gap: 1rem;
@@ -245,27 +281,46 @@ button {
   grid-column: 1 / -1;
   place-self: end;
   margin-top: 1rem;
+
+  & button {
+    padding: 0.5em 1.25em;
+    background-color: var(--color-primary);
+    color: var(--color-background);
+    cursor: pointer;
+    border-radius: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+
+    transition: background-color 200ms;
+
+    &:hover {
+      background-color: var(--color-primary-dark);
+    }
+  }
 }
 
 .book-card {
-  border: 3px solid var(--color-border);
+  border: 3px solid var(--indigo);
   background-color: var(--color-background-mute);
-  margin: 2rem 1rem 1rem;
+  margin: 2rem 0 1rem 1rem;
   border-radius: 0.5rem;
 
   grid-column: 3;
   grid-row: 1 / span 4;
 
   width: 16rem;
-  aspect-ratio: 3 / 4;
+  /* aspect-ratio: 3 / 4; */
+
+  place-self: center;
 
   display: grid;
   gap: 0.5rem;
   grid-template-rows: 3fr 1fr;
 
+  overflow: hidden;
+
   & img {
     width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   & .book-card-content {

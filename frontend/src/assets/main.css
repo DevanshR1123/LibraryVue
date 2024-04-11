@@ -134,11 +134,10 @@ button {
   background-color: var(--color-primary);
   color: var(--color-background);
 
-  border: 2px solid var(--color-primary);
+  border: none;
 
   &:hover {
-    background-color: var(--color-primary-light);
-    color: var(--color-secondary);
+    background-color: var(--color-primary-dark);
   }
 }
 
@@ -147,4 +146,24 @@ dialog {
   border-radius: 0.5rem;
   background-color: var(--color-background-soft);
   margin: auto;
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.add-btn {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  color: white;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  font-size: 1.25rem;
+
+  &::before {
+    content: '+';
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+  }
 }

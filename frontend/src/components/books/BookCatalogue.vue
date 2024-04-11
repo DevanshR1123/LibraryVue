@@ -1,20 +1,11 @@
 <script setup lang="ts">
 import BookCard from '@/components/books/BookCard.vue'
-import { defineProps } from 'vue'
-import { type Book, type Section } from '@/types'
+import { useStore } from '@/store'
+import { computed } from 'vue'
 
-const { books, sections } = defineProps({
-  books: {
-    type: Array as () => Book[],
-    required: true
-  },
-  sections: {
-    type: Array as () => Section[],
-    required: true
-  }
-})
+const store = useStore()
 
-// console.log(books, sections)
+const books = computed(() => store.state.books)
 </script>
 
 <template>
@@ -27,7 +18,7 @@ const { books, sections } = defineProps({
 <style scoped>
 .catalogue {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
   padding: 1rem;
 }

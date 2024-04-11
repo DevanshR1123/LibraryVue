@@ -33,23 +33,23 @@ export type LoginResponse = LoginSuccess | LoginFailure
 // }
 
 export interface Section {
-  id: number
+  id?: number
   name: string
   description: string
-  image: string
-  books: Book[]
+  image: string | File | null
+  books?: Book[]
 }
 
 export interface Book {
-  id: number
+  id?: number
   title: string
   author: string
   description: string
   isbn: string
   year: number
-  content: string
-  image: string
-  date_added: Date
+  content: string | File | null
+  image: string | File | null
+  date_added?: Date
   section_id: number
 }
 

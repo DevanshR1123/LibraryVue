@@ -1,14 +1,14 @@
 <script setup lang="ts">
 const { src } = defineProps({
   src: {
-    type: String,
+    type: String as () => string | null,
     default: ''
   }
 })
 </script>
 
 <template>
-  <img :src="src" alt="Book cover" v-if="src" />
+  <img :src="src" alt="Section cover" v-if="src" />
   <div class="alt-img" v-else>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
       <path
@@ -30,12 +30,12 @@ img {
   background-color: var(--color-primary-light);
   color: var(--indigo);
   font-size: 1.5rem;
-  padding: 1rem;
+  padding: 3rem;
   aspect-ratio: 1 / 1;
 }
 
 svg {
-  width: 50%;
+  width: 100%;
   height: 100%;
 }
 </style>
