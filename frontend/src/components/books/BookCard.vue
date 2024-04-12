@@ -14,7 +14,7 @@ const { book } = props
 
 const imgSrc = computed(() => `http://localhost:5000/images/${book.image}`)
 
-const bookLink = computed(() => `/sections/${book.id}`)
+const bookLink = computed(() => `/books/${book.id}`)
 </script>
 
 <template>
@@ -30,16 +30,15 @@ const bookLink = computed(() => `/sections/${book.id}`)
 
 <style scoped>
 .book-card {
-  border: 3px solid var(--indigo);
+  border: 3px solid var(--color-secondary);
   background-color: var(--color-background-mute);
-  margin: 2rem 1rem 1rem;
   border-radius: 0.5rem;
 
-  color: var(--indigo);
+  color: var(--color-secondary);
   text-decoration: none;
 
-  /* width: 16rem;
-  aspect-ratio: 3 / 4; */
+  /* width: 16rem; */
+  /* aspect-ratio: 3 / 4; */
 
   display: grid;
   gap: 0.5rem;
@@ -72,6 +71,8 @@ const bookLink = computed(() => `/sections/${book.id}`)
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+
+    /* height: 2lh; */
 
     grid-column: 1 / -1;
   }

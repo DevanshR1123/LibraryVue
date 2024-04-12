@@ -1,7 +1,7 @@
+from flask_security import RoleMixin, SQLAlchemyUserDatastore, UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import SQLAlchemyUserDatastore, UserMixin, RoleMixin
-from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Boolean
-
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import backref, relationship
 
 db = SQLAlchemy()
 
@@ -22,14 +22,18 @@ class User(db.Model, UserMixin):
     lastname = Column(String(50), nullable=False)
     email = Column(String, unique=True)
     password = Column(String(255))
+
     active = Column(Boolean())
     last_login_at = Column(DateTime())
     current_login_at = Column(DateTime())
     last_login_ip = Column(String(100))
     current_login_ip = Column(String(100))
     login_count = Column(Integer)
+
     fs_uniquifier = Column(String(255), unique=True, nullable=False)
-    roles = db.relationship("Role", secondary="roles_users", backref=db.backref("users", lazy="dynamic"))
+
+    roles = relationship("Role", secondary="roles_users", backref=backref("users", lazy="dynamic"))
+    books = relationship("Book", secondary="book_issue", back_populates="users")
 
     def get_security_payload(self):
         rv = super().get_security_payload()
@@ -39,6 +43,12 @@ class User(db.Model, UserMixin):
         rv["last_name"] = self.lastname
         rv["roles"] = [role.name for role in self.roles]
         return rv
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+
+    def __str__(self):
+        return self.email
 
 
 class Role(db.Model, RoleMixin):
@@ -57,7 +67,13 @@ class Section(db.Model):
     name = Column(String(50), nullable=False)
     description = Column(String(255))
     image = Column(String(255), nullable=True)
-    books = db.relationship("Book", backref="section", lazy="dynamic")
+    books = relationship("Book", backref="section")
+
+    def __repr__(self):
+        return f"<Section {self.name}>"
+
+    def __str__(self):
+        return f"{self.name} - {self.description}"
 
 
 class Book(db.Model):
@@ -72,6 +88,14 @@ class Book(db.Model):
     image = Column(String(255), nullable=True)  # file path
     date_added = Column(DateTime())
     section_id = Column(Integer, ForeignKey("section.id"), nullable=True)
+    # section = relationship("Section", back_populates="books")
+    users = relationship("User", secondary="book_issue", back_populates="books")
+
+    def __repr__(self):
+        return f"<Book {self.title}>"
+
+    def __str__(self):
+        return f"{self.title} - {self.author} - {self.year} - {self.isbn} - {self.description}"
 
 
 class Comment(db.Model):

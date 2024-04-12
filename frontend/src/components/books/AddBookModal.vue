@@ -300,7 +300,7 @@ h2 {
 }
 
 .book-card {
-  border: 3px solid var(--indigo);
+  border: 3px solid var(--color-secondary);
   background-color: var(--color-background-mute);
   margin: 2rem 0 1rem 1rem;
   border-radius: 0.5rem;

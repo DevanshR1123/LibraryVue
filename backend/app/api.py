@@ -7,7 +7,7 @@ import uuid
 from flask import current_app as app
 from flask import request
 from flask_restful import Resource, marshal
-from flask_security import auth_required, roles_required
+from flask_security import auth_required, roles_accepted, current_user
 
 from app.api_helpers import *
 from app.models import Book, Comment, Rating, Section, db
@@ -34,15 +34,18 @@ class SearchAPI(Resource):
 class BookAPI(Resource):
     def get(self, id=None):
         if id:
-            book = Book.query.get_or_404(id, "Book not found")
+            book: Book = Book.query.get_or_404(id, "Book not found")
             return marshal(book, book_resource_fields)
         else:
-            books = Book.query.all()
+            books: list[Book] = Book.query.all()
             return marshal(books, book_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def post(self):
+
+        print(current_user)
+
         data = book_parser.parse_args()
 
         book: FileStorage = data.get("content")
@@ -85,7 +88,7 @@ class BookAPI(Resource):
         return marshal(book, book_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    # @roles_accepted("admin", "librarian")
     def put(self, id):
         data = book_parser.parse_args()
         book: Book = Book.query.get_or_404(id, "Book not found")
@@ -107,7 +110,7 @@ class BookAPI(Resource):
         return marshal(book, book_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    # @roles_accepted("admin", "librarian")
     def delete(self, id):
         book = Book.query.get_or_404(id, "Book not found")
         db.session.delete(book)
@@ -125,7 +128,7 @@ class SectionAPI(Resource):
             return marshal(sections, section_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    # @roles_accepted("admin", "librarian")
     def post(self):
         data = section_parser.parse_args()
 
@@ -148,7 +151,7 @@ class SectionAPI(Resource):
         return marshal(section, section_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    # @roles_accepted("admin", "librarian")
     def put(self, id):
         data = section_parser.parse_args()
 
@@ -161,7 +164,7 @@ class SectionAPI(Resource):
         return marshal(section, section_resource_fields)
 
     @auth_required("token")
-    # @roles_required("admin", "librarian")
+    # @roles_accepted("admin", "librarian")
     def delete(self, id):
         section = Section.query.get_or_404(id, "Section not found")
         db.session.delete(section)

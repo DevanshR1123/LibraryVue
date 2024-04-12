@@ -1,6 +1,14 @@
 from flask import current_app as app
 from flask import render_template_string, request, send_from_directory
-from flask_security import hash_password
+from flask_security import (
+    hash_password,
+    login_required,
+    roles_required,
+    current_user,
+    auth_required,
+    permissions_accepted,
+    roles_accepted,
+)
 
 from app.models import Book, db, user_datastore
 
@@ -8,6 +16,40 @@ from app.models import Book, db, user_datastore
 @app.route("/")
 def home():
     return render_template_string("Welcome to LibraryVue API")
+
+
+@app.route("/test-api", methods=["GET", "POST", "PUT", "DELETE"])
+@auth_required("token")
+@roles_accepted("admin", "librarian")
+def test_api():
+
+    try:
+
+        if request.method == "GET":
+            print("Request args:", request.args)
+        elif request.method == "POST":
+            # print("Request data:", request.data)
+            print("Request form:", request.form)
+            # print("Request args:", request.args)
+            # print("Request json:", request.json)
+            print("Request files:", request.files)
+
+            if request.files:
+                file = request.files["file"]
+                file.save(f"{app.config['IMAGE_DIR']}/{file.filename}")
+
+    except Exception as e:
+        print(e)
+
+    # print(current_user)
+
+    return {"message": "Test API"}
+
+
+@app.get("/check-auth")
+@auth_required("token")
+def check_auth():
+    return {"message": "Authenticated"}
 
 
 @app.route("/books/content/<int:id>")

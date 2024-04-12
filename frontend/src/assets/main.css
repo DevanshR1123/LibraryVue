@@ -33,11 +33,19 @@
   --color-heading: var(--text-light-1);
   --color-text: var(--text-light-1);
 
+  /* 
   --color-primary: hsla(160, 100%, 37%, 1);
   --color-primary-light: hsla(160, 100%, 42%, 1);
-  --color-primary-dark: hsla(160, 100%, 32%, 1);
+  --color-primary-dark: hsla(160, 100%, 32%, 1); 
+  */
 
-  --color-secondary: var(--indigo);
+  --color-primary: hsl(29, 58%, 67%);
+  --color-primary-light: hsl(29, 58%, 72%);
+  --color-primary-dark: hsl(29, 58%, 62%);
+
+  --color-secondary: hsl(210, 29%, 24%);
+  --color-secondary-light: hsl(210, 29%, 29%);
+  --color-secondary-dark: hsl(210, 29%, 19%);
 
   --color-success: hsla(120, 100%, 37%, 1);
   --color-success-light: hsla(120, 100%, 42%, 1);

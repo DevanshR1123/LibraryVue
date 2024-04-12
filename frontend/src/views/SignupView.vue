@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useStore } from '@/store'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+const store = useStore()
+const isAuth = computed(() => store.getters.isAuth)
 
 const firstName = ref('')
 const lastName = ref('')
@@ -38,6 +42,10 @@ const signup = async () => {
 
   loading.value = false
 }
+
+onMounted(() => {
+  if (isAuth.value) router.push('/')
+})
 </script>
 
 <template>

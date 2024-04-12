@@ -28,7 +28,7 @@ img {
   display: grid;
   place-items: center;
   background-color: var(--color-primary-light);
-  color: var(--indigo);
+  color: var(--color-secondary);
   font-size: 1.5rem;
   padding: 3rem;
   aspect-ratio: 1 / 1;

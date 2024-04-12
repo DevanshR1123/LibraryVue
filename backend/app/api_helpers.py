@@ -15,7 +15,17 @@ book_resource_fields = {
     "description": String,
     "content": String,
     "image": String,
-    "section_id": Integer,
+    "section": Nested(
+        {
+            "id": Integer,
+            "name": String,
+            "description": String,
+            "image": String,
+        }
+    ),
+    # "comments": List(Nested("comment_resource_fields")),
+    # "ratings": List(Nested("rating_resource_fields")),
+    # "issues": List(Nested("book_issue_resource_fields")),
 }
 
 books_resource_fields = List(Nested(book_resource_fields))

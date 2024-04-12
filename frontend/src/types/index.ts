@@ -50,7 +50,7 @@ export interface Book {
   content: string | File | null
   image: string | File | null
   date_added?: Date
-  section_id: number
+  section?: Section
 }
 
 export interface Comment {

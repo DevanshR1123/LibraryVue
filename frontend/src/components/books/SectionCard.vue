@@ -32,11 +32,11 @@ const sectionLink = computed(() => `/sections/${section.id}`)
 
 <style scoped>
 .section-card {
-  border: 3px solid var(--indigo);
+  border: 3px solid var(--color-secondary);
   background-color: var(--color-background-mute);
   border-radius: 0.5rem;
 
-  color: var(--indigo);
+  color: var(--color-secondary);
   text-decoration: none;
 
   display: grid;

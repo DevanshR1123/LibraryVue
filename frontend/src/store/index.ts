@@ -27,20 +27,18 @@ export const store = createStore<State>({
     isAuth: (state) => !!state.user,
     fullName: (state) => `${state.user!.first_name} ${state.user!.last_name}`,
     email: (state) => state.user!.email,
-    isAdmin: (state) => state.user!.roles.includes('admin'),
-    isLibrarian: (state) => state.user!.roles.includes('librarian'),
-    isUser: (state) => state.user!.roles.includes('user'),
+    isAdmin: (state) => state.user?.roles.length && state.user!.roles.includes('admin'),
+    isLibrarian: (state) => state.user?.roles.length && state.user!.roles.includes('librarian'),
+    isUser: (state) => state.user?.roles.length && state.user!.roles.includes('user'),
     authToken: (state) => state.user!.authentication_token,
-    userId: (state) => state.user!.id,
-    role: (state) => state.user!.roles[0].toLocaleUpperCase(),
-    user: (state) => state.user,
 
     // Books
     books: (state) => state.books,
-    book: (state) => (id: number) => state.books.find((book) => book.id === id),
+    book: (state) => (id: number) => state.books.find((book: Book) => book.id === id),
 
     // Sections
-    sections: (state) => state.sections
+    sections: (state) => state.sections,
+    section: (state) => (id: number) => state.sections.find((section: Section) => section.id === id)
   },
 
   mutations: {
@@ -70,9 +68,21 @@ export const store = createStore<State>({
       localStorage.removeItem('user')
       commit('SET_USER', null)
     },
-    checkAuth({ commit }) {
+    async checkAuth({ commit }) {
       const user = JSON.parse(localStorage.getItem('user') || 'null')
-      commit('SET_USER', user)
+      const token = user ? user.authentication_token : null
+      if (token) {
+        const res = await fetch(`${apiUrl}/check-auth`, {
+          headers: { ...headers, 'Authentication-Token': token }
+        })
+
+        if (res.status === 200) {
+          commit('SET_USER', user)
+        } else {
+          localStorage.removeItem('user')
+          commit('SET_USER', null)
+        }
+      }
     },
 
     // Books

@@ -8,6 +8,7 @@ import BooksView from '@/views/BooksView.vue'
 import BookView from '@/views/BookView.vue'
 import SectionsView from '@/views/SectionsView.vue'
 import SectionView from '@/views/SectionView.vue'
+import SearchView from '@/views/SearchView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -87,6 +88,16 @@ const router = createRouter({
       name: 'section',
       component: SectionView,
       meta: { requiresAuth: true },
+      props: true
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: SearchView,
+      meta: {
+        requiresAuth: false,
+        title: 'Search'
+      },
       props: true
     }
   ]

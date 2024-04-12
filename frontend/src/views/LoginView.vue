@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
 import { type LoginResponse, type User } from '@/types'
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 const store = useStore()
-const isAuth = store.getters.isAuth
+const isAuth = computed(() => store.getters.isAuth)
 const loginAction = (user: User) => store.dispatch('login', user)
-
-if (isAuth) {
-  router.push('/')
-}
 
 const email = ref('')
 const password = ref('')
@@ -40,6 +36,10 @@ const login = async () => {
 
   loading.value = false
 }
+
+onMounted(() => {
+  if (isAuth.value) router.push('/')
+})
 </script>
 
 <template>

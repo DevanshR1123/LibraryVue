@@ -3,25 +3,22 @@ import { RouterLink, RouterView } from 'vue-router'
 import Logo from '@/components/AppLogo.vue'
 import NavAuth from '@/components/NavAuth.vue'
 import { useStore } from '@/store'
-import { computed, onMounted } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 
 const store = useStore()
 const isAuth = computed(() => store.getters.isAuth)
 
 const baseLinks = [
   { path: '/', name: 'Home' },
-  { path: '/about', name: 'About' }
-]
-
-const authLinks = [
+  // { path: '/about', name: 'About' },
   { path: '/books', name: 'Books' },
-  { path: '/sections', name: 'Sections' },
-  { path: '/dashboard', name: 'Dashboard' }
+  { path: '/sections', name: 'Sections' }
 ]
 
+const authLinks = [{ path: '/dashboard', name: 'Dashboard' }]
 const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : baseLinks))
 
-onMounted(() => {
+onBeforeMount(() => {
   store.dispatch('checkAuth')
   store.dispatch('getBooks')
   store.dispatch('getSections')
@@ -30,10 +27,13 @@ onMounted(() => {
 
 <template>
   <header>
-    <h1>
-      <Logo />
-      LibraryVue
-    </h1>
+    <RouterLink to="/">
+      <h1>
+        <Logo />
+        LibraryVue
+      </h1>
+    </RouterLink>
+
     <nav>
       <ul class="nav-links">
         <li v-for="link in links" :key="link.path">
@@ -46,14 +46,12 @@ onMounted(() => {
   <main>
     <RouterView v-slot="{ Component }">
       <template v-if="Component">
-        <Transition mode="out-in">
-          <KeepAlive>
-            <Suspense>
-              <component :is="Component"></component>
-              <template #fallback> <div class="loader"></div> </template>
-            </Suspense>
-          </KeepAlive>
-        </Transition>
+        <KeepAlive>
+          <Suspense>
+            <component :is="Component"></component>
+            <template #fallback> <div class="loader"></div> </template>
+          </Suspense>
+        </KeepAlive>
       </template>
     </RouterView>
   </main>
@@ -70,6 +68,8 @@ header {
 
   position: sticky;
   top: 0;
+
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
 h1 {
@@ -78,6 +78,11 @@ h1 {
   gap: 0.5rem;
 
   font-weight: 900;
+}
+
+a {
+  color: var(--color-text);
+  text-decoration: none;
 }
 
 nav {

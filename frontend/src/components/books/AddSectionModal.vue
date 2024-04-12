@@ -64,7 +64,7 @@ onMounted(() => {
 
       <label for="image" class="image"
         >Image
-        <input type="file" id="image" name="image" required ref="image" accept="image/*" />
+        <input type="file" id="image" name="image" ref="image" accept="image/*" />
       </label>
 
       <div class="btns">
@@ -206,7 +206,7 @@ textarea {
 }
 
 .section-card {
-  border: 3px solid var(--indigo);
+  border: 3px solid var(--color-secondary);
   background-color: var(--color-background-mute);
   margin: 2rem 0 1rem;
   border-radius: 0.5rem;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { src } = defineProps({
   src: {
-    type: String,
+    type: String as () => string | null,
     default: ''
   }
 })
@@ -21,6 +21,7 @@ const { src } = defineProps({
 <style scoped>
 img {
   width: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
 }
 
@@ -28,7 +29,7 @@ img {
   display: grid;
   place-items: center;
   background-color: var(--color-primary-light);
-  color: var(--indigo);
+  color: var(--color-secondary);
   font-size: 1.5rem;
   padding: 1rem;
   aspect-ratio: 1 / 1;
