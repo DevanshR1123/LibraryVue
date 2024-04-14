@@ -104,14 +104,24 @@ body {
 #app {
   display: grid;
   grid-template-rows: auto 1fr;
+  max-height: 100vh;
+}
+
+main {
+  display: grid;
+  padding: 2rem;
+  overflow: auto;
+  gap: 1rem;
+  max-height: 100%;
+  grid-auto-rows: auto;
 }
 
 section {
   padding: 2rem;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: 0.5rem;
-
   background-color: var(--color-background-mute);
+  max-height: 100%;
 }
 
 .loader {
@@ -156,8 +166,8 @@ dialog {
   margin: auto;
 
   &::backdrop {
-    background-color: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0);
+    /* backdrop-filter: blur(4px); */
   }
 }
 
@@ -173,5 +183,113 @@ dialog {
     content: '+';
     font-size: 1.5rem;
     margin-right: 0.5rem;
+  }
+}
+
+.back-link {
+  color: var(--color-secondary);
+  font-weight: bold;
+  text-decoration: none;
+
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+
+  border: 2px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+
+  justify-self: start;
+
+  transition: all 250ms;
+
+  &::before {
+    content: '<<';
+    line-height: 1;
+  }
+
+  &:hover {
+    border-color: var(--color-secondary);
+  }
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  font-weight: bold;
+
+  display: inline-block;
+  height: fit-content;
+
+  &.available {
+    background-color: var(--color-success);
+  }
+
+  &.issued {
+    background-color: var(--color-primary);
+  }
+
+  &.librarian {
+    background-color: var(--color-secondary);
+  }
+}
+
+.button {
+  padding: 0.5rem 1rem;
+
+  background-color: var(--color-primary);
+  color: white;
+
+  border: none;
+  border-radius: 0.5rem;
+
+  font-weight: bold;
+  font-size: 1.25rem;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition: background-color 200ms;
+
+  &:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  &.read,
+  &.issue,
+  &.save {
+    background-color: var(--color-success);
+    color: var(--color-background);
+
+    &:hover {
+      background-color: var(--color-success-dark);
+    }
+  }
+
+  &.return {
+    background-color: var(--color-error);
+
+    &:hover {
+      background-color: var(--color-error-dark);
+    }
+  }
+
+  &.edit {
+    background-color: var(--color-secondary);
+
+    &:hover {
+      background-color: var(--color-secondary-dark);
+    }
+  }
+
+  &.delete,
+  &.cancel {
+    background-color: var(--color-error);
+
+    &:hover {
+      background-color: var(--color-error-dark);
+    }
   }
 }

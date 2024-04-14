@@ -69,6 +69,8 @@ header {
   position: sticky;
   top: 0;
 
+  z-index: 1000;
+
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
@@ -132,10 +134,5 @@ nav {
       }
     }
   }
-}
-
-main {
-  padding: 1rem;
-  display: grid;
 }
 </style>

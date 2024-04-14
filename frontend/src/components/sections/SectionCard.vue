@@ -39,6 +39,8 @@ const sectionLink = computed(() => `/sections/${section.id}`)
   color: var(--color-secondary);
   text-decoration: none;
 
+  width: 100%;
+
   display: grid;
   gap: 0.5rem;
 

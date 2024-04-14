@@ -32,16 +32,21 @@ export type LoginResponse = LoginSuccess | LoginFailure
 //   image: string
 // }
 
-export interface Section {
-  id?: number
+export interface NewSection {
   name: string
   description: string
   image: string | File | null
-  books?: Book[]
 }
 
-export interface Book {
-  id?: number
+export interface Section {
+  id: number
+  name: string
+  description: string
+  image: string | File | null
+  books: Book[]
+}
+
+export interface NewBook {
   title: string
   author: string
   description: string
@@ -49,8 +54,22 @@ export interface Book {
   year: number
   content: string | File | null
   image: string | File | null
-  date_added?: Date
-  section?: Section
+  section_id: number
+}
+
+export interface Book {
+  id: number
+  title: string
+  author: string
+  description: string
+  isbn: string
+  year: number
+  image: string | File | null
+  date_added: Date
+  section: Section
+  rating: number
+  comments: Comment[]
+  issued: boolean
 }
 
 export interface Comment {

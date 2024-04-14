@@ -14,7 +14,8 @@ const books = computed(() => store.state.books)
     <h1>Books</h1>
     <SearchBox />
     <AdminToolbar />
-    <section class="catalogue">
+
+    <section class="book-cards">
       <p v-if="!books.length" class="no-books">No books found</p>
       <BookCard v-for="book in books" :key="book.id" :book="book" />
     </section>
@@ -27,20 +28,20 @@ const books = computed(() => store.state.books)
   gap: 1rem;
 
   grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto 1fr;
 }
 
 .toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-  gap: 1rem;
+  grid-column: 1 / -1;
 }
 
-.catalogue {
+.book-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
   gap: 2rem;
   padding: 2rem;
+  place-items: center;
+  align-self: start;
 
   grid-column: 1 / -1;
 }

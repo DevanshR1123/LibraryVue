@@ -6,16 +6,28 @@ from requests import get, post
 books_data = pd.read_csv("data/books.csv")
 sections_data = pd.read_csv("data/sections.csv")
 
+
+def get_user(email, password):
+    return post(
+        "http://localhost:5000/login?include_auth_token",
+        json={"email": email, "password": password},
+        headers={"Content-Type": "application/json"},
+    ).json()["response"]["user"]
+
+
+def get_token(email, password):
+    return get_user(email, password)["authentication_token"]
+
+
 admin = {
-    "email": "test.admin@example.com",
+    "email": "library.admin@example.com",
     "password": "password",
 }
 
-res = post("http://localhost:5000/login?include_auth_token", json=admin, headers={"Content-Type": "application/json"})
-user = res.json()
-token = user["response"]["user"]["authentication_token"]
+token = get_token(admin["email"], admin["password"])
 
 sections_to_id = {}
+
 
 for s, d in sections_data.itertuples(index=False):
     res = post(
@@ -27,7 +39,6 @@ for s, d in sections_data.itertuples(index=False):
     sections_to_id[s] = res.json()["id"]
 
 print("Sections added")
-
 for image, pdf, title, description, author, section, year, isbn in books_data.itertuples(index=False):
     res = post(
         "http://localhost:5000/books",
@@ -44,3 +55,26 @@ for image, pdf, title, description, author, section, year, isbn in books_data.it
     )
 
 print("Books added")
+
+sections = get("http://localhost:5000/sections").json()
+books = get("http://localhost:5000/books").json()
+
+users = [
+    {
+        "email": "alice.user@example.com",
+        "password": "password",
+    },
+    {
+        "email": "bob.user@example.com",
+        "password": "password",
+    },
+    {
+        "email": "charlie.user@example.com",
+        "password": "password",
+    },
+]
+
+for user in users:
+    user_data = get_user(user["email"], user["password"])
+    user["id"] = user_data["id"]
+    user["token"] = user_data["authentication_token"]

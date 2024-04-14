@@ -33,7 +33,9 @@ class User(db.Model, UserMixin):
     fs_uniquifier = Column(String(255), unique=True, nullable=False)
 
     roles = relationship("Role", secondary="roles_users", backref=backref("users", lazy="dynamic"))
-    books = relationship("Book", secondary="book_issue", back_populates="users")
+    books = relationship("Book", secondary="book_issue", back_populates="users", viewonly=True)
+    issues = relationship("BookIssue", backref="user")
+    ratings = relationship("Rating", backref="user")
 
     def get_security_payload(self):
         rv = super().get_security_payload()
@@ -49,6 +51,10 @@ class User(db.Model, UserMixin):
 
     def __str__(self):
         return self.email
+
+    @property
+    def full_name(self):
+        return f"{self.firstname} {self.lastname}"
 
 
 class Role(db.Model, RoleMixin):
@@ -88,8 +94,10 @@ class Book(db.Model):
     image = Column(String(255), nullable=True)  # file path
     date_added = Column(DateTime())
     section_id = Column(Integer, ForeignKey("section.id"), nullable=True)
-    # section = relationship("Section", back_populates="books")
-    users = relationship("User", secondary="book_issue", back_populates="books")
+    users = relationship("User", secondary="book_issue", back_populates="books", viewonly=True)
+    issues = relationship("BookIssue", backref="book", cascade="all, delete-orphan")
+    comments = relationship("Comment", backref="book", cascade="all, delete-orphan")
+    ratings = relationship("Rating", backref="book", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Book {self.title}>"
@@ -97,21 +105,33 @@ class Book(db.Model):
     def __str__(self):
         return f"{self.title} - {self.author} - {self.year} - {self.isbn} - {self.description}"
 
+    @property
+    def issued(self):
+        return any([issue.returned == False for issue in self.issues])
+
+    @property
+    def rating(self):
+        ratings = [rating.rating for rating in self.ratings]
+        return sum(ratings) / len(ratings) if ratings else 0
+
 
 class Comment(db.Model):
     __tablename__ = "comment"
     id = Column(Integer, autoincrement=True, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    book_id = Column(Integer, ForeignKey("book.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False)
+    book_id = Column(Integer, ForeignKey("book.id", ondelete="cascade"), nullable=False)
     content = Column(String(255))
     timestamp = Column(DateTime())
 
 
 class Rating(db.Model):
     __tablename__ = "rating"
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, primary_key=True)
-    book_id = Column(Integer, ForeignKey("book.id"), nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False, primary_key=True)
+    book_id = Column(Integer, ForeignKey("book.id", ondelete="cascade"), nullable=False, primary_key=True)
     rating = Column(Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<Rating {self.rating}>"
 
 
 class BookIssue(db.Model):

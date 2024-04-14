@@ -1,74 +1,148 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { ref } from 'vue'
-import { type Book } from '@/types'
+import { useRoute, RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { type Book, type Comment, type Rating } from '@/types'
 import BookPlaceholder from '@/components/BookPlaceholder.vue'
+import { useStore } from '@/store'
+// import AdminToolbar from '@/components/AdminToolbar.vue'
+import IssueBook from '@/components/books/modals/IssueBook.vue'
+import ReturnBook from '@/components/books/modals/ReturnBook.vue'
+import EditBook from '@/components/books/modals/EditBook.vue'
+import DeleteBook from '@/components/books/modals/DeleteBook.vue'
+
+const store = useStore()
 
 const route = useRoute()
 const id = parseInt(route.params.id as string)
 
-const error = ref<string | null>(null)
-const title = ref<string | null>(null)
-const description = ref<string | null>(null)
-const imageUrl = ref<string | null>(null)
-const author = ref<string | null>(null)
-const isbn = ref<string | null>(null)
-const year = ref<number | null>(null)
-const content = ref<string | null>(null)
+const isAuth = computed(() => store.getters.isAuth)
+const isLibrarian = computed(() => store.getters.isLibrarian)
+const isAdmin = computed(() => store.getters.isAdmin)
+const isUser = computed(() => store.getters.isUser)
+const issued = computed(() => store.getters.issued(id))
 
-const res = await fetch(`http://localhost:5000/books/${id}`)
+const book = computed<Book>(() => store.getters.book(id))
+const error = computed(() => !book.value && 'Book not found')
 
-if (res.ok) {
-  const book: Book = await res.json()
-  title.value = book.title
-  description.value = book.description
-  imageUrl.value = `http://localhost:5000/images/${book.image}`
-  author.value = book.author
-  isbn.value = book.isbn
-  year.value = book.year
-  content.value = book.content as string
+const title = computed(() => book.value?.title)
+const description = computed(() => book.value?.description)
+const imageUrl = computed(() => `http://localhost:5000/images/${book.value?.image}`)
+const author = computed(() => book.value?.author)
+const isbn = computed(() => book.value?.isbn)
+const year = computed(() => book.value?.year)
+const genre = computed(() => book.value?.section?.name)
+// const comments = computed<Comment[]>(() => book.value.comments)
 
-  route.meta.title = book.title
-} else {
-  const { message } = await res.json()
-  error.value = message
+const userRating = computed<Rating>(() => store.getters.rating(id))
+const rating = computed(() => (userRating.value?.rating || book.value?.rating || 0).toFixed(1))
+
+const canRead = computed(
+  () => isAuth.value && ((isUser.value && issued.value) || isLibrarian.value)
+)
+
+const canIssue = computed(() => isAuth.value && isUser.value && !issued.value)
+const canReturn = computed(() => isAuth.value && isUser.value && issued.value)
+const canModify = computed(() => isAdmin.value || isLibrarian.value)
+
+const badge = computed(() => {
+  if (!isAuth.value) return ''
+  if ((isUser.value && issued.value) || (isLibrarian.value && book.value?.issued)) return 'Issued'
+  return 'Available'
+})
+
+const badgeClass = computed(() => {
+  if (isAuth.value) {
+    if (isUser.value && issued.value) return 'issued'
+    if (isUser.value && !issued.value) return 'available'
+    if (isLibrarian.value) return 'librarian'
+  }
+  return ''
+})
+
+const handleRating = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  const rating = parseInt(target.dataset.rating || '0')
+  store.dispatch('rateBook', { book_id: id, rating })
 }
 </script>
 
 <template>
-  <section class="book">
-    <div class="book-card">
-      <div class="book-img">
-        <BookPlaceholder :src="imageUrl" />
+  <div class="book-view">
+    <RouterLink to="/books" class="back-link">Back to books</RouterLink>
+    <!-- <AdminToolbar /> -->
+
+    <section class="book">
+      <div class="book-card">
+        <div class="book-img">
+          <BookPlaceholder :src="imageUrl" />
+        </div>
+
+        <template v-if="error">
+          <h1 class="error">{{ error }}</h1>
+          <p class="error-message">
+            The book you are looking for is not available. Please check back later.
+          </p>
+        </template>
+
+        <template v-else>
+          <h1 v-if="title" class="book-title">{{ title }}</h1>
+          <p v-if="description" class="book-description">{{ description }}</p>
+          <div class="book-info" v-if="author || year || isbn">
+            <p><strong>Author:</strong> {{ author }}</p>
+            <p><strong>Year:</strong> {{ year }}</p>
+            <p><strong>ISBN:</strong> {{ isbn }}</p>
+            <p><strong>Genre:</strong> {{ genre }}</p>
+          </div>
+
+          <div class="badge" v-if="badge" :class="badgeClass">{{ badge }}</div>
+
+          <div class="rating-container">
+            <div class="rating" :style="{ '--value': rating }" :class="{ active: isUser }">
+              <span data-rating="1" @click="handleRating">⭐</span>
+              <span data-rating="2" @click="handleRating">⭐</span>
+              <span data-rating="3" @click="handleRating">⭐</span>
+              <span data-rating="4" @click="handleRating">⭐</span>
+              <span data-rating="5" @click="handleRating">⭐</span>
+            </div>
+            <span> {{ rating }}/5 </span>
+          </div>
+
+          <div class="book-actions">
+            <RouterLink v-if="canRead" :to="`/read/${id}`" class="button read">
+              Read Book
+            </RouterLink>
+            <IssueBook v-if="canIssue" />
+            <ReturnBook v-if="canReturn" />
+            <EditBook v-if="canModify" :book="book" />
+            <DeleteBook v-if="canModify" :book="book" />
+          </div>
+        </template>
       </div>
-      <h1 v-if="title">{{ title }}</h1>
-      <p v-if="description">{{ description }}</p>
-      <div class="book-info">
-        <p v-if="author"><strong>Author:</strong> {{ author }}</p>
-        <p v-if="year"><strong>Year:</strong> {{ year }}</p>
-        <p v-if="isbn"><strong>ISBN:</strong> {{ isbn }}</p>
-        <p v-if="error" class="error">{{ error }}</p>
-        <p v-if="error" class="error-link">
-          <RouterLink to="/books">Back to books</RouterLink>
-        </p>
-      </div>
-    </div>
-    <!-- <div class="book-content" v-if="content" v-html="content"></div>  -->
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped>
+.book-view {
+  display: grid;
+  gap: 1rem;
+
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+}
+
 .book {
   display: grid;
   gap: 2rem;
 
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
+  grid-column: span 2;
 }
 
 .book-card {
   display: grid;
-  grid-template-columns: 10rem 1fr;
-  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 10rem 1fr auto;
+  grid-template-rows: auto auto auto 1fr;
   gap: 0 2rem;
 
   .book-img {
@@ -81,25 +155,100 @@ if (res.ok) {
     overflow: hidden;
   }
 
+  .book-title {
+    grid-column: 2;
+    font-size: 3rem;
+  }
+
+  .book-description {
+    grid-column: 2 / span 2;
+  }
+
   .book-info {
     grid-column: 2;
 
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    gap: 3rem;
   }
-}
 
-.book-content {
-  font-size: 1.125rem;
-  line-height: 1.75;
+  .badge {
+    grid-column: 3;
+    grid-row: 1;
+
+    place-self: center end;
+  }
 }
 
 .error {
   color: var(--color-error);
+  align-self: center;
   margin: 0;
+  font-size: 3rem;
+
+  grid-row: span 2;
 }
 
-.error-link {
-  margin: 0;
+.error-message {
+  color: var(--color-text-mute);
+  font-size: 1.5rem;
+
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.rating-container {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  grid-column: 3;
+
+  align-items: center;
+}
+
+.rating {
+  /* --value: 5; */
+  --_value: calc(var(--value, 2.5) / 5 * 100%);
+
+  place-self: center;
+
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+
+  background-image: linear-gradient(
+    90deg,
+    var(--color-primary) var(--_value),
+    var(--color-secondary) var(--_value)
+  );
+
+  user-select: none;
+
+  &.active span {
+    background-clip: text;
+    -webkit-background-clip: text;
+    transition: background-color 200ms;
+    cursor: pointer;
+
+    &:hover,
+    &:has(~ span:hover) {
+      background-color: var(--color-primary);
+    }
+
+    &:hover ~ span {
+      background-color: var(--color-secondary);
+    }
+  }
+}
+
+.book-actions {
+  display: flex;
+  gap: 2rem;
+
+  padding: 1rem 0;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+
+  grid-column: 2 / -1;
 }
 </style>

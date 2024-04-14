@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
-import { computed, Suspense } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import AdminDashboard from '@/components/dashboard/AdminDashboard.vue'
@@ -18,9 +18,7 @@ const fullName = computed(() => store.getters.fullName)
 
 const router = useRouter()
 
-if (!isAuth.value) {
-  router.push('/login')
-}
+if (!isAuth.value) router.push('/login')
 </script>
 
 <template>

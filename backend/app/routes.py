@@ -1,4 +1,4 @@
-from flask import current_app as app
+from flask import current_app as app, send_file, Response
 from flask import render_template_string, request, send_from_directory
 from flask_security import (
     hash_password,
@@ -11,6 +11,8 @@ from flask_security import (
 )
 
 from app.models import Book, db, user_datastore
+
+import base64
 
 
 @app.route("/")
@@ -52,10 +54,16 @@ def check_auth():
     return {"message": "Authenticated"}
 
 
-@app.route("/books/content/<int:id>")
+# @app.route("/books/<int:id>/content")
+# def get_book_content(id):
+#     book = Book.query.get_or_404(id, "Book not found")
+#     return send_from_directory(app.config["BOOKS_DIR"], book.content)
+
+
+@app.route("/books/<int:id>/content")
 def get_book_content(id):
     book = Book.query.get_or_404(id, "Book not found")
-    return send_from_directory(app.config["BOOKS_DIR"], book.content, as_attachment=True)
+    return send_file(f'{app.config["BOOKS_DIR"]}/{book.content}')
 
 
 @app.route("/images/<path:filename>")

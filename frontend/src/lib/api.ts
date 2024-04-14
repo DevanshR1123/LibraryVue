@@ -27,6 +27,8 @@ export const createBook = async (book: Book): Promise<Book> => {
   bookData.append('description', book.description)
   bookData.append('isbn', book.isbn)
   bookData.append('year', book.year.toString())
+
+  if (!book.section_id) throw new Error('No section selected')
   bookData.append('section_id', book.section_id.toString())
   if (!book.content) throw new Error('No content provided')
   bookData.append('content', book.content)

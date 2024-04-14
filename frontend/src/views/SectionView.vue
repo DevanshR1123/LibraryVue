@@ -1,58 +1,71 @@
 <script setup lang="ts">
 import { useRoute, RouterLink } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { type Section, type Book } from '@/types'
 import SectionPlaceholder from '@/components/SectionPlaceholder.vue'
 import BookCard from '@/components/books/BookCard.vue'
+import DeleteSection from '@/components/sections/modals/DeleteSection.vue'
+import EditSection from '@/components/sections/modals/EditSection.vue'
+
+import { useStore } from '@/store'
+
+const store = useStore()
 
 const route = useRoute()
 const id = parseInt(route.params.id as string)
 
-const error = ref<string | null>(null)
-const name = ref<string | null>(null)
-const description = ref<string | null>(null)
-const imageUrl = ref<string | null>(null)
-const books = ref<Book[]>([])
+const isLibrarian = computed(() => store.getters.isLibrarian)
+const isAdmin = computed(() => store.getters.isAdmin)
 
-const res = await fetch(`http://localhost:5000/sections/${id}`)
+const section = computed<Section>(() => store.getters.section(id))
+const error = computed(() => !section.value && 'Section not found')
 
-if (res.ok) {
-  const section: Section = await res.json()
-  name.value = section.name
-  description.value = section.description
-  imageUrl.value = `http://localhost:5000/images/${section.image}`
-  books.value = section.books || []
-  route.meta.title = section.name
-} else {
-  const { message } = await res.json()
-  error.value = message
-}
+const name = computed(() => section.value?.name)
+const description = computed(() => section.value?.description)
+const imageUrl = computed(() =>
+  section.value?.image ? `http://localhost:5000/images/${section.value?.image}` : undefined
+)
+const books = computed<Book[]>(() => section.value?.books || [])
+
+const canModify = computed(() => isAdmin.value || isLibrarian.value)
 </script>
 
 <template>
-  <section>
-    <div class="section-card">
-      <div class="section-img">
-        <SectionPlaceholder :src="imageUrl" />
+  <div class="section-view">
+    <section class="section">
+      <div class="section-card">
+        <div class="section-img">
+          <SectionPlaceholder :src="imageUrl" />
+        </div>
+        <template v-if="error">
+          <h1 class="error">{{ error }}</h1>
+          <p class="error-message">
+            The section you are looking for does not exist. Please check back later.
+          </p>
+        </template>
+        <template v-else>
+          <h1 class="section-title">{{ name }}</h1>
+          <p class="section-description">{{ description }}</p>
+
+          <div class="section-actions">
+            <EditSection :section="section" v-if="canModify" />
+            <DeleteSection :section="section" v-if="canModify" />
+          </div>
+
+          <div class="catalogue">
+            <p v-if="!books.length" class="no-books">No books found</p>
+            <BookCard v-for="book in books" :key="book.id" :book="book" />
+          </div>
+        </template>
       </div>
-      <h1 v-if="name">{{ name }}</h1>
-      <p v-if="description">{{ description }}</p>
-      <h1 v-if="error" class="error">{{ error }}</h1>
-      <p v-if="error" class="error-link">
-        <RouterLink to="/sections">Back to sections</RouterLink>
-      </p>
-    </div>
-    <div class="catalogue">
-      <p v-if="!books.length" class="no-books">No books found</p>
-      <BookCard v-for="book in books" :key="book.id" :book="book" />
-    </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped>
 .section-card {
   display: grid;
-  grid-template-columns: 10rem 1fr;
+  grid-template-columns: 10rem 1fr auto;
   grid-template-rows: auto auto 1fr;
   gap: 0 2rem;
 
@@ -81,20 +94,6 @@ if (res.ok) {
     align-self: center;
     margin: 0;
   }
-
-  .error-link {
-    color: var(--color-secondary);
-    font-weight: bold;
-
-    a {
-      color: var(--color-secondary);
-    }
-  }
-
-  .error-link::before {
-    content: '<< ';
-    height: 1rem;
-  }
 }
 
 .catalogue {
@@ -102,5 +101,20 @@ if (res.ok) {
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
   padding: 1rem;
+
+  grid-column: 1 / -1;
+}
+
+.section-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  padding: 1rem 0;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+
+  grid-column: 3 / -1;
+  grid-row: 1 / span 3;
 }
 </style>

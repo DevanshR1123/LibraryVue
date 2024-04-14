@@ -2,6 +2,7 @@
 import { useStore } from '@/store'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue3-toastify'
 
 const store = useStore()
 const isAuth = computed(() => store.getters.isAuth)
@@ -38,7 +39,10 @@ const signup = async () => {
     body: JSON.stringify(user)
   })
 
-  if (res.ok) router.push('/login')
+  if (res.ok) {
+    toast.success('Signup successful')
+    router.push('/login')
+  }
 
   loading.value = false
 }

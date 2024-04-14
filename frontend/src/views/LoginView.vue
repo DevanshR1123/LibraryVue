@@ -3,12 +3,12 @@ import { useStore } from '@/store'
 import { type LoginResponse, type User } from '@/types'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue3-toastify'
 
 const router = useRouter()
 
 const store = useStore()
 const isAuth = computed(() => store.getters.isAuth)
-const loginAction = (user: User) => store.dispatch('login', user)
 
 const email = ref('')
 const password = ref('')
@@ -25,7 +25,7 @@ const login = async () => {
   }).then((res: Response) => res.json())
 
   if (res.meta.code === 200 && 'user' in res.response) {
-    loginAction(res.response.user)
+    store.dispatch('login', res.response.user)
     email.value = ''
     password.value = ''
     router.push('/')

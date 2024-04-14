@@ -1,5 +1,8 @@
 import '@/assets/main.css'
 import 'vue3-toastify/dist/index.css'
+import 'vue-pdf-embed/dist/style/index.css'
+import 'vue-pdf-embed/dist/style/annotationLayer.css'
+import 'vue-pdf-embed/dist/style/textLayer.css'
 
 import { createApp } from 'vue'
 import App from '@/App.vue'

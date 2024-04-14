@@ -53,7 +53,7 @@ api.add_resource(BookAPI, "/books", "/books/<int:id>")
 api.add_resource(SectionAPI, "/sections", "/sections/<int:id>")
 api.add_resource(CommentAPI, "/comments", "/comments/<int:id>")
 api.add_resource(RatingAPI, "/ratings", "/ratings/<int:id>")
-api.add_resource(BookIssueAPI, "/book-issues", "/book-issues/<int:id>")
+api.add_resource(BookIssueAPI, "/issues", "/issues/<int:id>")
 
 
 # one time setup

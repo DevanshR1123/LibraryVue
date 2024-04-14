@@ -17,13 +17,6 @@ app.security = Security(app, user_datastore)
 
 sample_users = [
     {
-        "email": "devansh.rathor@example.com",
-        "password": "password",
-        "firstname": "Devansh",
-        "lastname": "Rathor",
-        "roles": ["admin"],
-    },
-    {
         "email": "test.user@example.com",
         "password": "password",
         "firstname": "Test",
@@ -31,18 +24,39 @@ sample_users = [
         "roles": ["user"],
     },
     {
-        "email": "test.admin@example.com",
+        "email": "library.admin@example.com",
         "password": "password",
-        "firstname": "Test",
+        "firstname": "Library",
         "lastname": "Admin",
         "roles": ["admin"],
     },
     {
-        "email": "test.librarian@example.com",
+        "email": "the.librarian@example.com",
         "password": "password",
-        "firstname": "Test",
+        "firstname": "The",
         "lastname": "Librarian",
         "roles": ["librarian"],
+    },
+    {
+        "email": "alice.user@example.com",
+        "password": "password",
+        "firstname": "Alice",
+        "lastname": "User",
+        "roles": ["user"],
+    },
+    {
+        "email": "bob.user@example.com",
+        "password": "password",
+        "firstname": "Bob",
+        "lastname": "User",
+        "roles": ["user"],
+    },
+    {
+        "email": "charlie.user@example.com",
+        "password": "password",
+        "firstname": "Charlie",
+        "lastname": "User",
+        "roles": ["user"],
     },
 ]
 

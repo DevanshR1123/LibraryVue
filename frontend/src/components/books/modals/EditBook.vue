@@ -1,28 +1,35 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
-import { createBook } from '@/utils/api'
+import { isValidISBN } from '@/lib/utils'
 import BookPlaceholder from '@/components/BookPlaceholder.vue'
 import { useStore } from '@/store'
 import { toast } from 'vue3-toastify'
+import { type NewBook, type Book } from '@/types'
+
+const { book } = defineProps<{
+  book: Book
+}>()
 
 const store = useStore()
 const sections = computed(() => store.state.sections)
 
-const book = reactive({
-  title: '',
-  author: '',
-  description: '',
-  isbn: '',
-  _year: new Date().toISOString().split('T')[0].split('-').slice(0, 2).join('-'),
-  section: ''
+const newBook = reactive({
+  _year: new Date(new Date().setFullYear(book.year))
+    .toISOString()
+    .split('T')[0]
+    .split('-')
+    .slice(0, 2)
+    .join('-'),
+  section_id: book.section.id.toString(),
+  ...book
 })
 
 const content = ref<HTMLInputElement>()
 const image = ref<HTMLInputElement>()
 
-const imgSrc = ref<string>()
+const imgSrc = ref<string>(`http://localhost:5000/images/${book.image}`)
 
-const year = computed(() => new Date(book._year).getFullYear())
+const year = computed(() => new Date(newBook._year).getFullYear())
 
 const dialog = ref<HTMLDialogElement>()
 
@@ -35,10 +42,20 @@ const closeModal = () => {
 }
 
 const addBook = async () => {
-  const { title, author, description, isbn } = book
+  const { title, author, description, isbn } = newBook
+
+  if (!title || !author || !description || !isbn) {
+    toast.error('Please fill all the fields')
+    return
+  }
+
+  if (!isValidISBN(isbn)) {
+    toast.error('Invalid ISBN')
+    return
+  }
 
   try {
-    await createBook({
+    const bookData: NewBook = {
       title,
       author,
       description,
@@ -46,27 +63,25 @@ const addBook = async () => {
       year: year.value,
       content: content.value && content.value.files?.[0] ? content.value.files?.[0] : null,
       image: image.value && image.value.files?.[0] ? image.value.files?.[0] : null,
-      section_id: parseInt(book.section || '0')
-    })
+      section_id: parseInt(newBook.section_id || '0')
+    }
 
-    store.dispatch('getBooks')
+    await store.dispatch('updateBook', { book_id: book.id, book: bookData })
 
-    book.title = ''
-    book.author = ''
-    book.description = ''
-    book.isbn = ''
-    book.section = ''
-    book._year = new Date().toISOString().split('T')[0].split('-').slice(0, 2).join('-')
+    // newBook.title = ''
+    // newBook.author = ''
+    // newBook.description = ''
+    // newBook.isbn = ''
+    // newBook.section_id = ''
+    // newBook._year = new Date().toISOString().split('T')[0].split('-').slice(0, 2).join('-')
 
-    content.value!.value = ''
-    image.value!.value = ''
+    // content.value!.value = ''
+    // image.value!.value = ''
 
-    imgSrc.value = ''
-
-    toast.success('Book added successfully')
+    // imgSrc.value = ''
   } catch (error) {
     console.error(error)
-    toast.error('Failed to add book')
+    toast.error('Failed to update book')
   }
 
   closeModal()
@@ -98,7 +113,7 @@ onMounted(() => {
       return
     }
 
-    if (!book.title) book.title = file.name.split('.').slice(0, -1).join('.')
+    if (!book.title) newBook.title = file.name.split('.').slice(0, -1).join('.')
   })
 })
 </script>
@@ -109,27 +124,33 @@ onMounted(() => {
     <form @submit.prevent="addBook">
       <label for="title" class="title"
         >Title
-        <input type="text" id="title" name="title" required v-model="book.title" />
+        <input type="text" id="title" name="title" required v-model="newBook.title" />
       </label>
 
       <label for="author" class="author"
         >Author
-        <input type="text" id="author" name="author" required v-model="book.author" />
+        <input type="text" id="author" name="author" required v-model="newBook.author" />
       </label>
 
       <label for="isbn" class="isbn"
         >ISBN
-        <input type="text" id="isbn" name="isbn" required v-model="book.isbn" />
+        <input type="text" id="isbn" name="isbn" required v-model="newBook.isbn" />
       </label>
 
       <label for="year" class="year"
         >Year
-        <input type="month" id="year" name="year" required v-model="book._year" />
+        <input type="month" id="year" name="year" required v-model="newBook._year" />
       </label>
 
       <label for="section" class="section"
         >Section
-        <select id="section" name="section" required v-model="book.section" v-if="sections.length">
+        <select
+          id="section"
+          name="section"
+          required
+          v-model="newBook.section_id"
+          v-if="sections.length"
+        >
           <option value="" disabled selected>Select a section</option>
           <option v-for="section in sections" :key="section.id" :value="section.id">
             {{ section.name }}
@@ -146,7 +167,7 @@ onMounted(() => {
           id="description"
           name="description"
           required
-          v-model="book.description"
+          v-model="newBook.description"
         ></textarea>
       </label>
 
@@ -157,19 +178,12 @@ onMounted(() => {
 
       <label for="content" class="content"
         >Content
-        <input
-          type="file"
-          id="content"
-          name="content"
-          required
-          ref="content"
-          accept="application/pdf"
-        />
+        <input type="file" id="content" name="content" ref="content" accept="application/pdf" />
       </label>
 
       <div class="btns">
-        <button type="submit">Add</button>
-        <button type="button" @click="closeModal">Cancel</button>
+        <button type="submit" class="button save">Save</button>
+        <button type="button" class="button cancel" @click="closeModal">Cancel</button>
       </div>
 
       <div class="book-card">
@@ -183,7 +197,7 @@ onMounted(() => {
     </form>
   </dialog>
 
-  <button class="add-btn" @click="showModal">Add Book</button>
+  <button class="button edit" @click="showModal">Edit Book</button>
 </template>
 
 <style scoped>
@@ -278,25 +292,8 @@ h2 {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(2, 1fr);
-  grid-column: 1 / -1;
-  place-self: end;
+  grid-column: 3;
   margin-top: 1rem;
-
-  & button {
-    padding: 0.5em 1.25em;
-    background-color: var(--color-primary);
-    color: var(--color-background);
-    cursor: pointer;
-    border-radius: 0.25rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-
-    transition: background-color 200ms;
-
-    &:hover {
-      background-color: var(--color-primary-dark);
-    }
-  }
 }
 
 .book-card {

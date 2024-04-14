@@ -37,6 +37,8 @@ const bookLink = computed(() => `/books/${book.id}`)
   color: var(--color-secondary);
   text-decoration: none;
 
+  width: 100%;
+
   /* width: 16rem; */
   /* aspect-ratio: 3 / 4; */
 

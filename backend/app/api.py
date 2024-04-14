@@ -10,7 +10,7 @@ from flask_restful import Resource, marshal
 from flask_security import auth_required, roles_accepted, current_user
 
 from app.api_helpers import *
-from app.models import Book, Comment, Rating, Section, db
+from app.models import Book, Comment, Rating, Section, db, User, BookIssue
 
 BOOKS_DIR = app.config["BOOKS_DIR"]
 IMAGE_DIR = app.config["IMAGE_DIR"]
@@ -19,22 +19,15 @@ IMAGE_DIR = app.config["IMAGE_DIR"]
 class SearchAPI(Resource):
     def get(self):
         q = request.args.get("q")
-        books = (
-            Book.query.filter(Book.title.ilike(f"%{q}%")).all()
-            or Book.query.filter(Book.author.ilike(f"%{q}%")).all()
-            or Book.query.filter(Book.description.ilike(f"%{q}%")).all()
-            or Book.query.filter(Book.isbn.ilike(f"%{q}%")).all()
-            or Book.query.filter(Book.year.ilike(f"%{q}%")).all()
-            or Book.query.filter(Book.section.name.ilike(f"%{q}%")).all()
-        )
-
-        return marshal(books, books_resource_fields)
+        books = list(filter(lambda book: re.search(q, str(book) + str(book.section), re.IGNORECASE), Book.query.all()))
+        return marshal(books, book_resource_fields)
 
 
 class BookAPI(Resource):
     def get(self, id=None):
         if id:
             book: Book = Book.query.get_or_404(id, "Book not found")
+            print(book.ratings)
             return marshal(book, book_resource_fields)
         else:
             books: list[Book] = Book.query.all()
@@ -85,17 +78,18 @@ class BookAPI(Resource):
 
         db.session.add(book)
         db.session.commit()
-        return marshal(book, book_resource_fields)
+        return marshal(book, book_resource_fields), 201
 
     @auth_required("token")
-    # @roles_accepted("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def put(self, id):
         data = book_parser.parse_args()
         book: Book = Book.query.get_or_404(id, "Book not found")
-        book.title = data.get("title")
-        book.author = data.get("author")
-        book.section = data.get("section")
-        book.description = data.get("description")
+        book.title = data.get("title", book.title)
+        book.author = data.get("author", book.author)
+        book.description = data.get("description", book.description)
+        book.isbn = data.get("isbn", book.isbn)
+        book.year = data.get("year", book.year)
 
         content = data.get("content")
         if content:
@@ -106,16 +100,20 @@ class BookAPI(Resource):
         if image:
             book.image = base64.b64encode(image.read()).decode("utf-8")
 
+        section_id = data.get("section_id")
+        if section_id:
+            book.section = Section.query.get_or_404(section_id, "Section not found")
+
         db.session.commit()
-        return marshal(book, book_resource_fields)
+        return marshal(book, book_resource_fields), 201
 
     @auth_required("token")
-    # @roles_accepted("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def delete(self, id):
         book = Book.query.get_or_404(id, "Book not found")
         db.session.delete(book)
         db.session.commit()
-        return {"message": "Book deleted successfully"}
+        return {"message": "Book deleted successfully"}, 204
 
 
 class SectionAPI(Resource):
@@ -128,7 +126,7 @@ class SectionAPI(Resource):
             return marshal(sections, section_resource_fields)
 
     @auth_required("token")
-    # @roles_accepted("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def post(self):
         data = section_parser.parse_args()
 
@@ -148,10 +146,10 @@ class SectionAPI(Resource):
 
         db.session.add(section)
         db.session.commit()
-        return marshal(section, section_resource_fields)
+        return marshal(section, section_resource_fields), 201
 
     @auth_required("token")
-    # @roles_accepted("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def put(self, id):
         data = section_parser.parse_args()
 
@@ -161,15 +159,15 @@ class SectionAPI(Resource):
         section.image = base64.b64encode(data.get("image").read()).decode("utf-8") if data.get("image") else None
 
         db.session.commit()
-        return marshal(section, section_resource_fields)
+        return marshal(section, section_resource_fields), 201
 
     @auth_required("token")
-    # @roles_accepted("admin", "librarian")
+    @roles_accepted("admin", "librarian")
     def delete(self, id):
         section = Section.query.get_or_404(id, "Section not found")
         db.session.delete(section)
         db.session.commit()
-        return {"message": "Section deleted successfully"}
+        return {"message": "Section deleted successfully"}, 204
 
 
 class CommentAPI(Resource):
@@ -210,19 +208,9 @@ class CommentAPI(Resource):
 
 
 class RatingAPI(Resource):
+    @auth_required("token")
     def get(self):
-        data = fetch_rating_parser.parse_args()
-        if data.get("user_id"):
-            ratings = Rating.query.filter_by(user_id=data.get("user_id")).all()
-        elif data.get("book_id"):
-            ratings = Rating.query.filter_by(book_id=data.get("book_id")).all()
-        else:
-            ratings = Rating.query.all()
-
-        if not ratings:
-            return {"message": "No ratings found"}, 404
-
-        return marshal(ratings, rating_resource_fields)
+        return marshal(current_user.ratings, rating_resource_fields)
 
     @auth_required("token")
     def post(self):
@@ -230,29 +218,51 @@ class RatingAPI(Resource):
 
         user_id = data.get("user_id")
         book_id = data.get("book_id")
-        rating = data.get("rating")
+        rating_value = data.get("rating")
+
+        print(data)
 
         rating = Rating.query.filter_by(user_id=user_id, book_id=book_id).first()
 
         if rating:
-            rating.rating = rating
+            rating.rating = rating_value
         else:
-            rating = Rating(user_id=user_id, book_id=book_id, rating=rating)
+            rating = Rating(user_id=user_id, book_id=book_id, rating=rating_value)
             db.session.add(rating)
         db.session.commit()
 
-        return marshal(rating, rating_resource_fields)
+        return marshal(rating, rating_resource_fields), 201
 
 
 class BookIssueAPI(Resource):
-    def get(self, id=None):
-        pass
 
-    def post(self):
-        pass
+    @auth_required("token")
+    def get(self):
+        active_issues = BookIssue.query.filter_by(user_id=current_user.id, returned=False).all()
+        return marshal(active_issues, issue_resource_fields)
+
+    def post(self, id):
+
+        user_id = current_user.id
+        issue = BookIssue.query.filter_by(user_id=user_id, book_id=id, returned=False).first()
+
+        if issue:
+            return {"message": "Book already issued"}, 400
+
+        issue_date = datetime.datetime.now()
+        return_date = issue_date + datetime.timedelta(days=7)
+        issue = BookIssue(user_id=user_id, book_id=id, issue_date=issue_date, return_date=return_date)
+        db.session.add(issue)
+        db.session.commit()
+        return marshal(issue, issue_resource_fields), 201
 
     def put(self, id):
         pass
 
+    @auth_required("token")
     def delete(self, id):
-        pass
+        user_id = current_user.id
+        issue = BookIssue.query.filter_by(user_id=user_id, book_id=id, returned=False).first()
+        issue.returned = True
+        db.session.commit()
+        return {"message": "Book returned successfully"}, 204

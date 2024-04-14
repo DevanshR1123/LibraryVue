@@ -4,7 +4,7 @@ import { useStore } from '@/store'
 import { computed, ref } from 'vue'
 import CrossIcon from '@/components/icons/CrossIcon.vue'
 import BookCard from '@/components/books/BookCard.vue'
-import SectionCard from '@/components/books/SectionCard.vue'
+import SectionCard from '@/components/sections/SectionCard.vue'
 
 const store = useStore()
 const books = computed(() => store.state.books)

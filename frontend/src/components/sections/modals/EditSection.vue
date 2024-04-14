@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import { createSection } from '@/utils/api'
 import SectionPlaceholder from '@/components/SectionPlaceholder.vue'
+import { useStore } from '@/store'
+import { toast } from 'vue3-toastify'
+import { type NewSection, type Section } from '@/types'
+
+const { section } = defineProps<{
+  section: Section
+}>()
+
+const store = useStore()
 
 const dialog = ref<HTMLDialogElement>()
 
-const section = reactive({
-  name: '',
-  description: ''
+const newSection = reactive({
+  ...section
 })
 
 const image = ref<HTMLInputElement>()
@@ -22,14 +29,30 @@ const closeModal = () => {
 }
 
 const addSection = async () => {
-  const { name, description } = section
-  console.log(name, description, image.value?.files?.[0].name)
-  const newSection = await createSection({
-    name,
-    description,
-    image: image.value?.files?.length ? image.value?.files[0] : null
-  })
-  console.log(newSection)
+  const { name, description } = newSection
+
+  if (!name || !description) {
+    toast.error('Please fill all the fields')
+    return
+  }
+
+  try {
+    const sectionData: NewSection = {
+      name,
+      description,
+      image: image.value?.files?.[0] ?? null
+    }
+    await store.dispatch('updateSection', sectionData)
+
+    // newSection.name = ''
+    // newSection.description = ''
+
+    // image.value!.value = ''
+  } catch (error) {
+    console.error(error)
+    toast.error('Failed to edit section')
+  }
+
   closeModal()
 }
 
@@ -50,16 +73,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="add-section-modal">
-    <h2>Add Section</h2>
+  <dialog ref="dialog" class="edit-section-modal">
+    <h2>Edit Section</h2>
     <form @submit.prevent="addSection">
       <label>
         Name
-        <input v-model="section.name" type="text" required />
+        <input v-model="newSection.name" type="text" required />
       </label>
       <label>
         Description
-        <textarea v-model="section.description" required></textarea>
+        <textarea v-model="newSection.description" required></textarea>
       </label>
 
       <label for="image" class="image"
@@ -68,8 +91,8 @@ onMounted(() => {
       </label>
 
       <div class="btns">
-        <button type="submit">Add</button>
-        <button type="button" @click="closeModal">Cancel</button>
+        <button type="submit" class="button save">Save</button>
+        <button type="button" class="button cancel" @click="closeModal">Cancel</button>
       </div>
 
       <div class="section-card">
@@ -84,11 +107,11 @@ onMounted(() => {
     </form>
   </dialog>
 
-  <button class="add-btn" @click="openModal">Add Section</button>
+  <button class="button edit" @click="openModal">Edit Section</button>
 </template>
 
 <style scoped>
-.add-section-modal {
+.edit-section-modal {
   padding: 2rem;
 
   & form {
@@ -187,22 +210,6 @@ textarea {
   grid-column: 1 / -1;
   place-self: end;
   margin-top: 1rem;
-
-  & button {
-    padding: 0.5em 1.25em;
-    background-color: var(--color-primary);
-    color: var(--color-background);
-    cursor: pointer;
-    border-radius: 0.25rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-
-    transition: background-color 200ms;
-
-    &:hover {
-      background-color: var(--color-primary-dark);
-    }
-  }
 }
 
 .section-card {

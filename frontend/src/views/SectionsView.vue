@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
 import { computed } from 'vue'
-import SectionCard from '@/components/books/SectionCard.vue'
+import SectionCard from '@/components/sections/SectionCard.vue'
 import AdminToolbar from '@/components/AdminToolbar.vue'
 import SearchBox from '@/components/SearchBox.vue'
 
@@ -11,7 +11,7 @@ const sections = computed(() => store.state.sections)
 
 <template>
   <div class="sections">
-    <h1>Sections</h1>
+    <h1>Library Sections</h1>
     <SearchBox />
     <AdminToolbar />
 
@@ -26,18 +26,13 @@ const sections = computed(() => store.state.sections)
 .sections {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 2fr 1fr;
-}
 
-h1 {
-  margin-bottom: 1rem;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto 1fr;
 }
 
 .toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-  gap: 1rem;
+  grid-column: 1 / -1;
 }
 
 .section-cards {
@@ -47,6 +42,7 @@ h1 {
   gap: 2rem;
   padding: 2rem;
   place-items: center;
+  align-self: start;
 
   grid-column: 1 / -1;
 }
