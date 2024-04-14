@@ -42,13 +42,8 @@ fetch_rating_parser = (
     .add_argument("book_id", type=int, required=False, location="args", help="Book ID is required")
 )
 
-new_rating_parser = (
-    reqparse.RequestParser()
-    .add_argument("user_id", type=int, required=True, location="json", help="User ID is required")
-    .add_argument("book_id", type=int, required=True, location="json", help="Book ID is required")
-    .add_argument(
-        "rating", type=int, required=True, location="json", help="Rating is required", choices=[1, 2, 3, 4, 5]
-    )
+new_rating_parser = reqparse.RequestParser().add_argument(
+    "rating", type=int, required=True, location="json", help="Rating is required", choices=[1, 2, 3, 4, 5]
 )
 
 
@@ -58,9 +53,15 @@ issue_resource_fields = {
     "id": Integer,
     "user_id": Integer,
     "book_id": Integer,
+    "request_date": DateTime,
     "issue_date": DateTime,
     "return_date": DateTime,
     "returned": Boolean,
+    "granted": Boolean,
+    "rejected": Boolean,
+    "overdue": Boolean,
+    "active": Boolean,
+    "requested": Boolean,
 }
 
 
@@ -68,9 +69,41 @@ issue_parser = (
     reqparse.RequestParser()
     .add_argument("user_id", type=int, required=True, location="json", help="User ID is required")
     .add_argument("book_id", type=int, required=True, location="json", help="Book ID is required")
-    .add_argument("issue_date", type=str, required=True, location="json", help="Issue date is required")
-    .add_argument("return_date", type=str, required=True, location="json", help="Return date is required")
 )
+
+librarian_issue_resource_fields = {
+    **issue_resource_fields,
+    "user": Nested(
+        {
+            "id": Integer,
+            "email": String,
+            "firstname": String,
+            "lastname": String,
+        }
+    ),
+    "book": Nested(
+        {
+            "id": Integer,
+            "title": String,
+            "author": String,
+            "isbn": String,
+            "year": Integer,
+            "description": String,
+            "image": String,
+            "section": Nested(
+                {
+                    "id": Integer,
+                    "name": String,
+                    "description": String,
+                    "image": String,
+                }
+            ),
+            "rating": Float,
+            "issued": Boolean,
+            "comments": List(Nested(comment_resource_fields)),
+        }
+    ),
+}
 
 
 # Book API
@@ -132,3 +165,6 @@ section_parser = (
     .add_argument("description", type=str, required=True, location="form", help="Description is required")
     .add_argument("image", type=FileStorage, required=False, location="files", help="Image is required")
 )
+
+
+# Librarian Dashboard API

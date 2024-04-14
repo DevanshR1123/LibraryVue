@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useStore } from '@/store'
 import { toast } from 'vue3-toastify'
-import { useRoute } from 'vue-router'
+import type { Book } from '@/types'
 
-const route = useRoute()
-const id = parseInt(route.params.id as string)
+const { book } = defineProps<{ book: Book }>()
 
 const store = useStore()
-const book = computed(() => store.getters.book(id))
 
 const dialog = ref<HTMLDialogElement>()
 
@@ -22,7 +20,7 @@ const closeModal = () => {
 
 const issueBook = async () => {
   try {
-    await store.dispatch('returnBook', id)
+    await store.dispatch('returnBook', book.id)
   } catch (error) {
     console.error(error)
     toast.error('Failed to issue book')
@@ -37,14 +35,13 @@ const issueBook = async () => {
     <h2>Issue Book</h2>
     <form @submit.prevent="issueBook">
       <p>
-        Are you sure you want to return <strong>"{{ book.title }}"</strong> by
-        <strong>{{ book.author }}</strong
+        Are you sure you want to return <strong>"{{ book.title }}"</strong> by <strong>{{ book.author }}</strong
         >?
       </p>
 
       <div class="btns">
-        <button type="button" class="button issue" @click="closeModal">Cancel</button>
-        <button type="submit" class="button return">Return</button>
+        <button type="button" class="button issue" @click="closeModal">Cancel Return</button>
+        <button type="submit" class="button return">Return Book</button>
       </div>
     </form>
   </dialog>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute, RouterLink } from 'vue-router'
 import { computed } from 'vue'
-import { type Book, type Comment, type Rating } from '@/types'
+import type { Book, Comment, Rating, BookIssue, LibrarianIssue } from '@/types'
 import BookPlaceholder from '@/components/BookPlaceholder.vue'
 import { useStore } from '@/store'
 // import AdminToolbar from '@/components/AdminToolbar.vue'
@@ -9,6 +9,10 @@ import IssueBook from '@/components/books/modals/IssueBook.vue'
 import ReturnBook from '@/components/books/modals/ReturnBook.vue'
 import EditBook from '@/components/books/modals/EditBook.vue'
 import DeleteBook from '@/components/books/modals/DeleteBook.vue'
+import UnissueBook from '@/components/books/modals/UnissueBook.vue'
+
+import IssueRequests from '@/components/books/IssueRequests.vue'
+import ActiveIssues from '@/components/books/ActiveIssues.vue'
 
 const store = useStore()
 
@@ -19,30 +23,36 @@ const isAuth = computed(() => store.getters.isAuth)
 const isLibrarian = computed(() => store.getters.isLibrarian)
 const isAdmin = computed(() => store.getters.isAdmin)
 const isUser = computed(() => store.getters.isUser)
-const issued = computed(() => store.getters.issued(id))
+
+const issued = computed<boolean>(() => store.getters.issued(id))
+const requested = computed<boolean>(() => store.getters.requested(id))
+
+const requests = computed<LibrarianIssue[]>(() => store.getters.issue_requests_by_book(id))
+const issues = computed<LibrarianIssue[]>(() => store.getters.active_issues_by_book(id))
 
 const book = computed<Book>(() => store.getters.book(id))
 const error = computed(() => !book.value && 'Book not found')
 
 const title = computed(() => book.value?.title)
 const description = computed(() => book.value?.description)
-const imageUrl = computed(() => `http://localhost:5000/images/${book.value?.image}`)
-const author = computed(() => book.value?.author)
-const isbn = computed(() => book.value?.isbn)
 const year = computed(() => book.value?.year)
+const isbn = computed(() => book.value?.isbn)
 const genre = computed(() => book.value?.section?.name)
+const author = computed(() => book.value?.author)
+
+const imageUrl = computed(() => (book.value?.image ? `http://localhost:5000/images/${book.value?.image}` : undefined))
+
 // const comments = computed<Comment[]>(() => book.value.comments)
 
 const userRating = computed<Rating>(() => store.getters.rating(id))
 const rating = computed(() => (userRating.value?.rating || book.value?.rating || 0).toFixed(1))
 
-const canRead = computed(
-  () => isAuth.value && ((isUser.value && issued.value) || isLibrarian.value)
-)
+const canRead = computed(() => isAuth.value && ((isUser.value && issued.value) || isLibrarian.value))
 
-const canIssue = computed(() => isAuth.value && isUser.value && !issued.value)
-const canReturn = computed(() => isAuth.value && isUser.value && issued.value)
-const canModify = computed(() => isAdmin.value || isLibrarian.value)
+const canIssue = computed<boolean>(() => isAuth.value && isUser.value && !issued.value && !requested.value)
+const canUnissue = computed<boolean>(() => isAuth.value && isUser.value && requested.value && !issued.value)
+const canReturn = computed<boolean>(() => isAuth.value && isUser.value && issued.value)
+const canModify = computed<boolean>(() => isAdmin.value || isLibrarian.value)
 
 const badge = computed(() => {
   if (!isAuth.value) return ''
@@ -51,11 +61,9 @@ const badge = computed(() => {
 })
 
 const badgeClass = computed(() => {
-  if (isAuth.value) {
-    if (isUser.value && issued.value) return 'issued'
-    if (isUser.value && !issued.value) return 'available'
-    if (isLibrarian.value) return 'librarian'
-  }
+  if (!isAuth.value) return 'available'
+  if ((isUser.value && issued.value) || (isLibrarian.value && book.value?.issued)) return 'issued'
+  if (isUser.value && requested.value) return 'requested'
   return ''
 })
 
@@ -79,9 +87,7 @@ const handleRating = (e: MouseEvent) => {
 
         <template v-if="error">
           <h1 class="error">{{ error }}</h1>
-          <p class="error-message">
-            The book you are looking for is not available. Please check back later.
-          </p>
+          <p class="error-message">The book you are looking for is not available. Please check back later.</p>
         </template>
 
         <template v-else>
@@ -108,14 +114,25 @@ const handleRating = (e: MouseEvent) => {
           </div>
 
           <div class="book-actions">
-            <RouterLink v-if="canRead" :to="`/read/${id}`" class="button read">
-              Read Book
-            </RouterLink>
-            <IssueBook v-if="canIssue" />
-            <ReturnBook v-if="canReturn" />
+            <RouterLink v-if="canRead" :to="`/read/${id}`" class="button read">Read Book</RouterLink>
+            <IssueBook v-if="canIssue" :book="book" />
+            <UnissueBook v-if="canUnissue" :book="book" />
+            <ReturnBook v-if="canReturn" :book="book" />
             <EditBook v-if="canModify" :book="book" />
             <DeleteBook v-if="canModify" :book="book" />
           </div>
+
+          <!-- <Comments :comments="comments" /> -->
+
+          <template v-if="isLibrarian">
+            <div class="requests" v-if="requests.length">
+              <IssueRequests :requests="requests" :include_title="false" />
+            </div>
+
+            <div class="issues" v-if="issues.length">
+              <ActiveIssues :issues="issues" :include_title="false" />
+            </div>
+          </template>
         </template>
       </div>
     </section>
@@ -216,11 +233,7 @@ const handleRating = (e: MouseEvent) => {
   -webkit-background-clip: text;
   color: transparent;
 
-  background-image: linear-gradient(
-    90deg,
-    var(--color-primary) var(--_value),
-    var(--color-secondary) var(--_value)
-  );
+  background-image: linear-gradient(90deg, var(--color-primary) var(--_value), var(--color-secondary) var(--_value));
 
   user-select: none;
 
@@ -250,5 +263,11 @@ const handleRating = (e: MouseEvent) => {
   margin: 1rem 0;
 
   grid-column: 2 / -1;
+}
+
+.requests,
+.issues {
+  grid-column: 2 / -1;
+  margin-top: 1rem;
 }
 </style>

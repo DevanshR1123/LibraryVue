@@ -1,8 +1,9 @@
 import base64
-import datetime
 import os
 import re
 import uuid
+
+from datetime import datetime, timedelta
 
 from flask import current_app as app
 from flask import request
@@ -10,10 +11,14 @@ from flask_restful import Resource, marshal
 from flask_security import auth_required, roles_accepted, current_user
 
 from app.api_helpers import *
-from app.models import Book, Comment, Rating, Section, db, User, BookIssue
+from app.models import Book, Comment, Rating, Section, db, BookIssue
+from app.utils import is_valid_isbn
 
 BOOKS_DIR = app.config["BOOKS_DIR"]
 IMAGE_DIR = app.config["IMAGE_DIR"]
+
+ISSUE_LIMIT = 5
+ISSUE_DURATION = 7
 
 
 class SearchAPI(Resource):
@@ -27,7 +32,6 @@ class BookAPI(Resource):
     def get(self, id=None):
         if id:
             book: Book = Book.query.get_or_404(id, "Book not found")
-            print(book.ratings)
             return marshal(book, book_resource_fields)
         else:
             books: list[Book] = Book.query.all()
@@ -37,11 +41,12 @@ class BookAPI(Resource):
     @roles_accepted("admin", "librarian")
     def post(self):
 
-        print(current_user)
-
         data = book_parser.parse_args()
 
         book: FileStorage = data.get("content")
+
+        if not is_valid_isbn(data.get("isbn")):
+            return {"message": "Invalid ISBN"}, 400
 
         if not book:
             return {"message": "Content is required"}, 400
@@ -61,9 +66,6 @@ class BookAPI(Resource):
             if not os.path.exists(os.path.join(IMAGE_DIR, image_path)):
                 return {"message": "Image not saved"}, 500
 
-        for key in data:
-            print(key, data[key], type(data[key]))
-
         book = Book(
             title=data.get("title"),
             author=data.get("author"),
@@ -73,7 +75,7 @@ class BookAPI(Resource):
             content=content,
             image=image_path,
             section=Section.query.get_or_404(data.get("section_id"), "Section not found"),
-            date_added=datetime.datetime.now(),
+            date_added=datetime.now(),
         )
 
         db.session.add(book)
@@ -98,7 +100,8 @@ class BookAPI(Resource):
 
         image = data.get("image")
         if image:
-            book.image = base64.b64encode(image.read()).decode("utf-8")
+            book.image = f"{uuid.uuid4()}_{image.filename}"
+            image.save(os.path.join(IMAGE_DIR, book.image))
 
         section_id = data.get("section_id")
         if section_id:
@@ -156,7 +159,11 @@ class SectionAPI(Resource):
         section: Section = Section.query.get_or_404(id, "Section not found")
         section.name = data.get("name")
         section.description = data.get("description")
-        section.image = base64.b64encode(data.get("image").read()).decode("utf-8") if data.get("image") else None
+
+        image: FileStorage = data.get("image")
+        if image:
+            section.image = f"{uuid.uuid4()}_{image.filename}"
+            image.save(os.path.join(IMAGE_DIR, section.image))
 
         db.session.commit()
         return marshal(section, section_resource_fields), 201
@@ -213,21 +220,17 @@ class RatingAPI(Resource):
         return marshal(current_user.ratings, rating_resource_fields)
 
     @auth_required("token")
-    def post(self):
+    def post(self, id):
         data = new_rating_parser.parse_args()
 
-        user_id = data.get("user_id")
-        book_id = data.get("book_id")
+        user_id = current_user.id
         rating_value = data.get("rating")
-
-        print(data)
-
-        rating = Rating.query.filter_by(user_id=user_id, book_id=book_id).first()
+        rating = Rating.query.filter_by(user_id=user_id, book_id=id).first()
 
         if rating:
             rating.rating = rating_value
         else:
-            rating = Rating(user_id=user_id, book_id=book_id, rating=rating_value)
+            rating = Rating(user_id=user_id, book_id=id, rating=rating_value)
             db.session.add(rating)
         db.session.commit()
 
@@ -235,12 +238,11 @@ class RatingAPI(Resource):
 
 
 class BookIssueAPI(Resource):
-
     @auth_required("token")
     def get(self):
-        active_issues = BookIssue.query.filter_by(user_id=current_user.id, returned=False).all()
-        return marshal(active_issues, issue_resource_fields)
+        return marshal(current_user.all_issues, issue_resource_fields)
 
+    @auth_required("token")
     def post(self, id):
 
         user_id = current_user.id
@@ -249,20 +251,78 @@ class BookIssueAPI(Resource):
         if issue:
             return {"message": "Book already issued"}, 400
 
-        issue_date = datetime.datetime.now()
-        return_date = issue_date + datetime.timedelta(days=7)
-        issue = BookIssue(user_id=user_id, book_id=id, issue_date=issue_date, return_date=return_date)
+        if len(current_user.all_issues) >= ISSUE_LIMIT:
+            return {"message": "Book issue limit reached"}, 400
+
+        issue = BookIssue(user_id=user_id, book_id=id, request_date=datetime.now())
         db.session.add(issue)
         db.session.commit()
         return marshal(issue, issue_resource_fields), 201
 
+    @auth_required("token")
     def put(self, id):
-        pass
+        user_id = current_user.id
+        issue = BookIssue.query.filter_by(user_id=user_id, book_id=id, returned=False).first()
+        if not issue:
+            return {"message": "Book not issued yet"}, 404
+        issue.returned = True
+        db.session.commit()
+        return {"message": "Book unissued successfully"}, 204
 
     @auth_required("token")
+    @roles_accepted("admin", "librarian")
     def delete(self, id):
         user_id = current_user.id
         issue = BookIssue.query.filter_by(user_id=user_id, book_id=id, returned=False).first()
+
+        if not issue:
+            return {"message": "Book not issued yet"}, 404
+
         issue.returned = True
         db.session.commit()
         return {"message": "Book returned successfully"}, 204
+
+
+class LibrarianIssueAPI(Resource):
+    @auth_required("token")
+    @roles_accepted("librarian")
+    def get(self):
+        issued_books = BookIssue.query.filter_by(returned=False, rejected=False).all()
+        return marshal(issued_books, librarian_issue_resource_fields)
+
+    @auth_required("token")
+    @roles_accepted("librarian")
+    def post(self, id):
+        issue = BookIssue.query.get_or_404(id, "Issue request not found")
+
+        if len(issue.user.active_issues) >= ISSUE_LIMIT:
+            return {"message": "Book issue limit reached"}, 400
+
+        if issue.granted:
+            return {"message": "Issue request already granted"}, 400
+
+        if not issue:
+            return {"message": "Issue request not found"}, 404
+
+        issue.issue_date = datetime.now()
+        issue.return_date = issue.issue_date + timedelta(days=ISSUE_DURATION)
+        issue.granted = True
+        db.session.commit()
+        return marshal(issue, issue_resource_fields), 201
+
+    @auth_required("token")
+    @roles_accepted("librarian")
+    def put(self, id):
+        issue = BookIssue.query.get_or_404(id, "Issue request not found")
+        issue.rejected = True
+        db.session.commit()
+        return {"message": "Issue request rejected successfully"}, 204
+
+    @auth_required("token")
+    @roles_accepted("librarian")
+    def delete(self, id):
+        issue = BookIssue.query.get_or_404(id, "Issue request not found")
+        issue.granted = False
+        issue.rejected = True
+        db.session.commit()
+        return {"message": "Issue request revoked successfully"}, 204

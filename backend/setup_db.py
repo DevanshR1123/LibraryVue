@@ -67,9 +67,13 @@ with app.app_context():
     db.drop_all()
     db.create_all()
 
+    print("Database tables created...")
+
     app.security.datastore.find_or_create_role(name="user", description="User Role")
     app.security.datastore.find_or_create_role(name="admin", description="Admin Role")
     app.security.datastore.find_or_create_role(name="librarian", description="Librarian Role")
+
+    print("Roles created...")
 
     for user in sample_users:
         if not app.security.datastore.find_user(email=user["email"]):
@@ -80,6 +84,27 @@ with app.app_context():
                 lastname=user["lastname"],
                 roles=user["roles"],
             )
+
     db.session.commit()
 
-    print("Database setup completed successfully...")
+    print("Users created...")
+
+
+# Clean up files
+import os
+
+BOOKS_DIR = os.path.join(os.path.dirname(__file__), "./static/books")
+IMAGE_DIR = os.path.join(os.path.dirname(__file__), "./static/images")
+
+if os.path.exists(BOOKS_DIR):
+    for file in os.listdir(BOOKS_DIR):
+        os.remove(os.path.join(BOOKS_DIR, file))
+
+if os.path.exists(IMAGE_DIR):
+    for file in os.listdir(IMAGE_DIR):
+        os.remove(os.path.join(IMAGE_DIR, file))
+
+print("Files cleaned up...")
+
+
+print("Database setup completed successfully...")

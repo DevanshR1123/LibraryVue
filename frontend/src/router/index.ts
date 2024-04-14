@@ -10,6 +10,10 @@ import SectionsView from '@/views/SectionsView.vue'
 import SectionView from '@/views/SectionView.vue'
 import SearchView from '@/views/SearchView.vue'
 import ReaderView from '@/views/ReaderView.vue'
+import IssueManagement from '@/components/dashboard/librarian/IssueManagement.vue'
+import LibrarianDashboard from '@/components/dashboard/librarian/LibrarianDashboard.vue'
+import BooksManagement from '@/components/dashboard/librarian/BooksManagement.vue'
+import SectionManagement from '@/components/dashboard/librarian/SectionManagement.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,7 +61,29 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         title: 'Dashboard'
-      }
+      },
+      children: [
+        {
+          path: '',
+          name: 'librarian-dashboard',
+          component: LibrarianDashboard
+        },
+        {
+          path: 'issues',
+          name: 'issue-management',
+          component: IssueManagement
+        },
+        {
+          path: 'books',
+          name: 'librarian-books',
+          component: BooksManagement
+        },
+        {
+          path: 'sections',
+          name: 'librarian-sections',
+          component: SectionManagement
+        }
+      ]
     },
     {
       path: '/books',

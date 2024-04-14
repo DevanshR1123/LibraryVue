@@ -46,7 +46,7 @@ app.app_context().push()
 from app.routes import *
 
 # Add resources
-from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI
+from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI, LibrarianIssueAPI
 
 api.add_resource(SearchAPI, "/search")
 api.add_resource(BookAPI, "/books", "/books/<int:id>")
@@ -54,6 +54,7 @@ api.add_resource(SectionAPI, "/sections", "/sections/<int:id>")
 api.add_resource(CommentAPI, "/comments", "/comments/<int:id>")
 api.add_resource(RatingAPI, "/ratings", "/ratings/<int:id>")
 api.add_resource(BookIssueAPI, "/issues", "/issues/<int:id>")
+api.add_resource(LibrarianIssueAPI, "/librarian/issues", "/librarian/issues/<int:id>")
 
 
 # one time setup

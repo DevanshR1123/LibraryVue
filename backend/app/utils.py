@@ -1,9 +1,5 @@
 def is_valid_isbn(isbn):
-
     isbn = isbn.replace("-", "").replace(" ", "")
-
-    print(isbn)
-
     if len(isbn) not in (10, 13):
         return False
 

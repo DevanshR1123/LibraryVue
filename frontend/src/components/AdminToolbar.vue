@@ -20,7 +20,6 @@ const isLibrarian = computed(() => store.getters.isLibrarian)
 .toolbar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
   gap: 1rem;
   padding: 1rem;
 

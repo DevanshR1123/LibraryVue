@@ -1,7 +1,10 @@
+from flask import request
 from flask_security import RoleMixin, SQLAlchemyUserDatastore, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
+from datetime import datetime
+
 
 db = SQLAlchemy()
 
@@ -41,8 +44,8 @@ class User(db.Model, UserMixin):
         rv = super().get_security_payload()
         rv["id"] = self.id
         rv["email"] = self.email
-        rv["first_name"] = self.firstname
-        rv["last_name"] = self.lastname
+        rv["firstname"] = self.firstname
+        rv["lastname"] = self.lastname
         rv["roles"] = [role.name for role in self.roles]
         return rv
 
@@ -55,6 +58,18 @@ class User(db.Model, UserMixin):
     @property
     def full_name(self):
         return f"{self.firstname} {self.lastname}"
+
+    @property
+    def all_issues(self):
+        return [issue for issue in self.issues if issue.active or issue.requested]
+
+    @property
+    def requested_issues(self):
+        return [issue for issue in self.issues if issue.requested]
+
+    @property
+    def active_issues(self):
+        return [issue for issue in self.issues if issue.active]
 
 
 class Role(db.Model, RoleMixin):
@@ -139,9 +154,27 @@ class BookIssue(db.Model):
     id = Column(Integer, autoincrement=True, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     book_id = Column(Integer, ForeignKey("book.id"), nullable=False)
+    request_date = Column(DateTime())
     issue_date = Column(DateTime())
     return_date = Column(DateTime())
     returned = Column(Boolean(), default=False)
+    granted = Column(Boolean(), default=False)
+    rejected = Column(Boolean(), default=False)
+
+    def __repr__(self):
+        return f"<BookIssue [{self.user_id}, {self.book_id}] - A:{self.active} - R:{self.requested}>"
+
+    @property
+    def overdue(self):
+        return self.return_date < datetime.now() if self.return_date else False
+
+    @property
+    def active(self):
+        return not self.returned and self.granted
+
+    @property
+    def requested(self):
+        return not self.returned and not self.granted
 
 
 # Setup Flask-Security

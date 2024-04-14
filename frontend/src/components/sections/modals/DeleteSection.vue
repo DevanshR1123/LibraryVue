@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useStore } from '@/store'
 import { toast } from 'vue3-toastify'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
+import type { Section } from '@/types'
+
+const { section } = defineProps<{ section: Section }>()
 
 const router = useRouter()
-const route = useRoute()
-const id = parseInt(route.params.id as string)
-
 const store = useStore()
-const section = computed(() => store.getters.section(id))
 
 const dialog = ref<HTMLDialogElement>()
 
@@ -23,8 +22,8 @@ const closeModal = () => {
 
 const deleteSection = async () => {
   try {
-    await store.dispatch('deleteSection', id)
-    setTimeout(() => router.push('/sections'), 1000)
+    await store.dispatch('deleteSection', section.id)
+    if (router.currentRoute.value.name === 'section') router.push('/sections')
   } catch (error) {
     console.error(error)
     toast.error('Failed to delete section')

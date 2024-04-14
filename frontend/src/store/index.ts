@@ -1,21 +1,13 @@
 import { type InjectionKey } from 'vue'
 import { createStore, Store, useStore as baseUseStore } from 'vuex'
-import {
-  type User,
-  type Book,
-  type Section,
-  type BookIssue,
-  type Rating,
-  type NewBook,
-  type NewSection
-} from '@/types'
+import type { User, Book, NewBook, Section, NewSection, BookIssue, LibrarianIssue, Rating } from '@/types'
 import { toast } from 'vue3-toastify'
 
 interface State {
   user: User | null
   books: Book[]
   sections: Section[]
-  issues: BookIssue[]
+  issues: BookIssue[] | LibrarianIssue[]
   ratings: Rating[]
 }
 
@@ -38,7 +30,7 @@ export const store = createStore<State>({
   getters: {
     // User
     isAuth: (state) => !!state.user,
-    fullName: (state) => `${state.user!.first_name} ${state.user!.last_name}`,
+    fullName: (state) => `${state.user!.firstname} ${state.user!.lastname}`,
     email: (state) => state.user!.email,
     isAdmin: (state) => state.user?.roles.length && state.user!.roles.includes('admin'),
     isLibrarian: (state) => state.user?.roles.length && state.user!.roles.includes('librarian'),
@@ -51,17 +43,26 @@ export const store = createStore<State>({
 
     // Sections
     sections: (state) => state.sections,
-    section: (state) => (id: number) =>
-      state.sections.find((section: Section) => section.id === id),
+    section: (state) => (id: number) => state.sections.find((section: Section) => section.id === id),
 
     // Issues
-    issued: (state) => (book_id: number) =>
-      state.issues.some((issue: BookIssue) => issue.book_id === book_id),
+    issues: (state) => state.issues,
+
+    issued: (state) => (book_id: number) => state.issues.some((issue) => issue.book_id === book_id && issue.granted),
+    requested: (state) => (book_id: number) =>
+      state.issues.some((issue) => issue.book_id === book_id && !issue.granted),
+
+    issue_requests: (state) => state.issues.filter((issue) => issue.requested),
+    active_issues: (state) => state.issues.filter((issue) => issue.active),
+
+    issue_requests_by_book: (state) => (book_id: number) =>
+      state.issues.filter((issue) => issue.book_id === book_id && !issue.granted && !issue.returned),
+    active_issues_by_book: (state) => (book_id: number) =>
+      state.issues.filter((issue) => issue.book_id === book_id && issue.granted && !issue.returned),
 
     // Ratings
     ratings: (state) => state.ratings,
-    rating: (state) => (book_id: number) =>
-      state.ratings.find((rating: Rating) => rating.book_id === book_id)
+    rating: (state) => (book_id: number) => state.ratings.find((rating: Rating) => rating.book_id === book_id)
   },
 
   mutations: {
@@ -95,7 +96,7 @@ export const store = createStore<State>({
     },
 
     // Issues
-    SET_ISSUES(state, issues: BookIssue[]) {
+    SET_ISSUES(state, issues: BookIssue[] | LibrarianIssue[]) {
       state.issues = issues
     },
 
@@ -116,6 +117,8 @@ export const store = createStore<State>({
       if (getters.isUser) {
         dispatch('getIssues')
         dispatch('getRatings')
+      } else if (getters.isLibrarian) {
+        dispatch('getLibrarianIssues')
       }
     },
 
@@ -137,6 +140,8 @@ export const store = createStore<State>({
           if (getters.isUser) {
             dispatch('getIssues')
             dispatch('getRatings')
+          } else if (getters.isLibrarian) {
+            dispatch('getLibrarianIssues')
           }
         } else {
           localStorage.removeItem('user')
@@ -152,7 +157,7 @@ export const store = createStore<State>({
       commit('SET_BOOKS', data)
     },
 
-    async createBook({ dispatch, state }, book: NewBook) {
+    async createBook({ dispatch, state, getters }, book: NewBook) {
       const bookData = new FormData()
       bookData.append('title', book.title)
       bookData.append('author', book.author)
@@ -166,7 +171,7 @@ export const store = createStore<State>({
       bookData.append('content', book.content)
       if (book.image) bookData.append('image', book.image)
 
-      if (!state.user) return
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
 
       const response = await fetch(`${apiUrl}/books`, {
         method: 'POST',
@@ -180,7 +185,7 @@ export const store = createStore<State>({
       }
     },
 
-    async updateBook({ dispatch, state }, { book_id, book }: { book_id: number; book: NewBook }) {
+    async updateBook({ dispatch, state, getters }, { book_id, book }: { book_id: number; book: NewBook }) {
       const bookData = new FormData()
       bookData.append('title', book.title)
       bookData.append('author', book.author)
@@ -193,7 +198,7 @@ export const store = createStore<State>({
       if (book.content) bookData.append('content', book.content)
       if (book.image) bookData.append('image', book.image)
 
-      if (!state.user) return
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
 
       const response = await fetch(`${apiUrl}/books/${book_id}`, {
         method: 'PUT',
@@ -207,8 +212,9 @@ export const store = createStore<State>({
       }
     },
 
-    async deleteBook({ dispatch, state }, book_id: number) {
-      if (!state.user) return
+    async deleteBook({ dispatch, state, getters }, book_id: number) {
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
+
       const response = await fetch(`${apiUrl}/books/${book_id}`, {
         method: 'DELETE',
         headers: { 'Authentication-Token': state.user.authentication_token }
@@ -227,7 +233,7 @@ export const store = createStore<State>({
       commit('SET_SECTIONS', data)
     },
 
-    async createSection({ dispatch, state }, section: NewSection) {
+    async createSection({ dispatch, state, getters }, section: NewSection) {
       const sectionData = new FormData()
       sectionData.append('name', section.name)
       sectionData.append('description', section.description)
@@ -235,7 +241,7 @@ export const store = createStore<State>({
         sectionData.append('image', section.image)
       }
 
-      if (!state.user) return
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
 
       const response = await fetch(`${apiUrl}/sections`, {
         method: 'POST',
@@ -250,7 +256,7 @@ export const store = createStore<State>({
     },
 
     async updateSection(
-      { dispatch, state },
+      { dispatch, state, getters },
       { section_id, section }: { section_id: number; section: NewSection }
     ) {
       const sectionData = new FormData()
@@ -260,7 +266,7 @@ export const store = createStore<State>({
         sectionData.append('image', section.image)
       }
 
-      if (!state.user) return
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
 
       const response = await fetch(`${apiUrl}/sections/${section_id}`, {
         method: 'PUT',
@@ -274,8 +280,8 @@ export const store = createStore<State>({
       }
     },
 
-    async deleteSection({ dispatch, state }, section_id: number) {
-      if (!state.user) return
+    async deleteSection({ dispatch, state, getters }, section_id: number) {
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
       const response = await fetch(`${apiUrl}/sections/${section_id}`, {
         method: 'DELETE',
         headers: { 'Authentication-Token': state.user.authentication_token }
@@ -293,7 +299,8 @@ export const store = createStore<State>({
       const response = await fetch(`${apiUrl}/issues`, {
         headers: { 'Authentication-Token': state.user.authentication_token }
       })
-      const data = await response.json()
+      const data = (await response.json()) as BookIssue[]
+      console.log(data)
       commit('SET_ISSUES', data)
     },
 
@@ -301,12 +308,25 @@ export const store = createStore<State>({
       if (!state.user) return
       const response = await fetch(`${apiUrl}/issues/${book_id}`, {
         method: 'POST',
-        headers: { ...headers, 'Authentication-Token': state.user.authentication_token }
+        headers: { 'Authentication-Token': state.user.authentication_token }
       })
 
       if (response.status === 201) {
         dispatch('getIssues')
         toast.success('Book issued successfully')
+      }
+    },
+
+    async unissueBook({ dispatch, state }, book_id: number) {
+      if (!state.user) return
+      const response = await fetch(`${apiUrl}/issues/${book_id}`, {
+        method: 'PUT',
+        headers: { 'Authentication-Token': state.user.authentication_token }
+      })
+
+      if (response.status === 201) {
+        dispatch('getIssues')
+        toast.success('Book unissued successfully')
       }
     },
 
@@ -336,14 +356,10 @@ export const store = createStore<State>({
 
     async rateBook({ dispatch, state }, { book_id, rating }) {
       if (!state.user) return
-      const response = await fetch(`${apiUrl}/ratings`, {
+      const response = await fetch(`${apiUrl}/ratings${book_id}`, {
         method: 'POST',
         headers: { ...headers, 'Authentication-Token': state.user.authentication_token },
-        body: JSON.stringify({
-          user_id: state.user.id,
-          book_id,
-          rating
-        })
+        body: JSON.stringify({ rating })
       })
 
       if (response.status === 201) {
@@ -352,8 +368,58 @@ export const store = createStore<State>({
       }
     },
 
-    testToast() {
-      toast.info('This is a toast message')
+    // Librarian actions
+
+    async getLibrarianIssues({ commit, state, getters }) {
+      if (!state.user || !getters.isLibrarian) return
+      const response = await fetch(`${apiUrl}/librarian/issues`, {
+        headers: { ...headers, 'Authentication-Token': state.user.authentication_token }
+      })
+      const data = (await response.json()) as LibrarianIssue[]
+      commit('SET_ISSUES', data)
+    },
+
+    async grantBook({ dispatch, state, getters }, issue_id: number) {
+      if (!state.user || !getters.isLibrarian) return
+      const response = await fetch(`${apiUrl}/librarian/issues/${issue_id}`, {
+        method: 'POST',
+        headers: { 'Authentication-Token': state.user.authentication_token }
+      })
+
+      if (response.status === 201) {
+        dispatch('getBooks')
+        dispatch('getLibrarianIssues')
+        toast.success('Book granted successfully')
+      }
+    },
+
+    async rejectBook({ dispatch, state, getters }, issue_id: number) {
+      if (!state.user || !getters.isLibrarian) return
+      const response = await fetch(`${apiUrl}/librarian/issues/${issue_id}`, {
+        method: 'PUT',
+        headers: { 'Authentication-Token': state.user.authentication_token }
+      })
+
+      if (response.status === 201) {
+        dispatch('getBooks')
+        dispatch('getLibrarianIssues')
+        toast.success('Book rejected successfully')
+      }
+    },
+
+    async revokeBook({ dispatch, state, getters }, issue_id: number) {
+      if (!state.user || !(getters.isAdmin || getters.isLibrarian)) return
+
+      const response = await fetch(`${apiUrl}/librarian/issues/${issue_id}`, {
+        method: 'DELETE',
+        headers: { 'Authentication-Token': state.user.authentication_token }
+      })
+
+      if (response.status === 204) {
+        dispatch('getBooks')
+        dispatch('getLibrarianIssues')
+        toast.success('Book revoked successfully')
+      }
     }
   }
 })

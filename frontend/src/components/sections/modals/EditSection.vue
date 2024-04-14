@@ -42,7 +42,8 @@ const addSection = async () => {
       description,
       image: image.value?.files?.[0] ?? null
     }
-    await store.dispatch('updateSection', sectionData)
+
+    await store.dispatch('updateSection', { section: sectionData, section_id: section.id })
 
     // newSection.name = ''
     // newSection.description = ''

@@ -1,7 +1,7 @@
 export interface User {
   id: number
-  first_name: string
-  last_name: string
+  firstname: string
+  lastname: string
   email: string
   roles: string[]
   authentication_token: string
@@ -90,7 +90,16 @@ export interface BookIssue {
   id: number
   user_id: number
   book_id: number
+  request_date: Date
   issue_date: Date
   return_date: Date
   returned: boolean
+  granted: boolean
+  active: boolean
+  requested: boolean
+}
+
+export interface LibrarianIssue extends BookIssue {
+  user: User
+  book: Book
 }

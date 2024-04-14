@@ -2,10 +2,7 @@
 import { ref } from 'vue'
 import { useStore } from '@/store'
 import { toast } from 'vue3-toastify'
-import { useRouter } from 'vue-router'
 import { type Book } from '@/types'
-
-const router = useRouter()
 
 const { book } = defineProps<{ book: Book }>()
 
@@ -21,10 +18,9 @@ const closeModal = () => {
   dialog.value!.close()
 }
 
-const deleteBook = async () => {
+const unissueBook = async () => {
   try {
-    await store.dispatch('deleteBook', book.id)
-    if (router.currentRoute.value.name === 'book') router.push('/books')
+    await store.dispatch('unissueBook', book.id)
   } catch (error) {
     console.error(error)
     toast.error('Failed to delete book')
@@ -35,27 +31,26 @@ const deleteBook = async () => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="delete-book-modal">
+  <dialog ref="dialog" class="unissue-book-modal">
     <h2>Delete Book</h2>
-    <form @submit.prevent="deleteBook">
+    <form @submit.prevent="unissueBook">
       <p>
-        Are you sure you want to delete <strong>"{{ book.title }}"</strong> by
-        <strong>{{ book.author }}</strong
-        >?
+        Are you sure you want to cancel issue request for <strong>"{{ book.title }}"</strong> by
+        <strong>{{ book.author }}</strong> ?
       </p>
 
       <div class="btns">
-        <button type="submit" class="button delete">Delete</button>
-        <button type="button" class="button issue" @click="closeModal">Cancel</button>
+        <button type="submit" class="button unissue">Unissue Book</button>
+        <button type="button" class="button issue" @click="closeModal">Cancel Unissue</button>
       </div>
     </form>
   </dialog>
 
-  <button class="button delete" @click="showModal">Delete Book</button>
+  <button class="button unissue" @click="showModal">Unissue Book</button>
 </template>
 
 <style scoped>
-.delete-book-modal {
+.unissue-book-modal {
   padding: 2rem;
   max-width: 32rem;
 
