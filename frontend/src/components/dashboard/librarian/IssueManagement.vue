@@ -12,18 +12,15 @@ const issues = computed<LibrarianIssue[]>(() => store.getters.active_issues)
 </script>
 
 <template>
-  <div class="requests" v-if="requests.length">
-    <IssueRequests :requests="requests" />
-  </div>
-
-  <div class="issues" v-if="issues.length">
-    <ActiveIssues :issues="issues" />
+  <div class="issue-management">
+    <IssueRequests :requests="requests" v-if="requests.length" />
+    <ActiveIssues :issues="issues" v-if="issues.length" />
   </div>
 </template>
 
 <style scoped>
-.requests,
-.issues {
-  padding: 1rem;
+.issue-management {
+  display: grid;
+  gap: 2rem;
 }
 </style>

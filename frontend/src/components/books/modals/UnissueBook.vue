@@ -31,7 +31,7 @@ const unissueBook = async () => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="unissue-book-modal">
+  <dialog ref="dialog" class="book-modal">
     <h2>Delete Book</h2>
     <form @submit.prevent="unissueBook">
       <p>
@@ -46,11 +46,11 @@ const unissueBook = async () => {
     </form>
   </dialog>
 
-  <button class="button unissue" @click="showModal">Unissue Book</button>
+  <button class="button unissue" @click="showModal">Unissue</button>
 </template>
 
 <style scoped>
-.unissue-book-modal {
+.book-modal {
   padding: 2rem;
   max-width: 32rem;
 

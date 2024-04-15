@@ -48,17 +48,17 @@ export const store = createStore<State>({
     // Issues
     issues: (state) => state.issues,
 
-    issued: (state) => (book_id: number) => state.issues.some((issue) => issue.book_id === book_id && issue.granted),
+    issued: (state) => (book_id: number) => state.issues.some((issue) => issue.book_id === book_id && issue.active),
     requested: (state) => (book_id: number) =>
-      state.issues.some((issue) => issue.book_id === book_id && !issue.granted),
+      state.issues.some((issue) => issue.book_id === book_id && issue.requested),
 
-    issue_requests: (state) => state.issues.filter((issue) => issue.requested),
     active_issues: (state) => state.issues.filter((issue) => issue.active),
+    issue_requests: (state) => state.issues.filter((issue) => issue.requested),
 
-    issue_requests_by_book: (state) => (book_id: number) =>
-      state.issues.filter((issue) => issue.book_id === book_id && !issue.granted && !issue.returned),
     active_issues_by_book: (state) => (book_id: number) =>
-      state.issues.filter((issue) => issue.book_id === book_id && issue.granted && !issue.returned),
+      state.issues.filter((issue) => issue.book_id === book_id && issue.active),
+    issue_requests_by_book: (state) => (book_id: number) =>
+      state.issues.filter((issue) => issue.book_id === book_id && issue.requested),
 
     // Ratings
     ratings: (state) => state.ratings,
@@ -300,7 +300,6 @@ export const store = createStore<State>({
         headers: { 'Authentication-Token': state.user.authentication_token }
       })
       const data = (await response.json()) as BookIssue[]
-      console.log(data)
       commit('SET_ISSUES', data)
     },
 
@@ -313,7 +312,10 @@ export const store = createStore<State>({
 
       if (response.status === 201) {
         dispatch('getIssues')
-        toast.success('Book issued successfully')
+        toast.success('Book requested successfully')
+      } else if (response.status === 400) {
+        const { message } = await response.json()
+        toast.error(message)
       }
     },
 

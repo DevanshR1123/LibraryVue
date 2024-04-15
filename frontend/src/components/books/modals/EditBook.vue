@@ -14,12 +14,7 @@ const store = useStore()
 const sections = computed(() => store.state.sections)
 
 const newBook = reactive({
-  _year: new Date(new Date().setFullYear(book.year))
-    .toISOString()
-    .split('T')[0]
-    .split('-')
-    .slice(0, 2)
-    .join('-'),
+  _year: new Date(new Date().setFullYear(book.year)).toISOString().split('T')[0].split('-').slice(0, 2).join('-'),
   section_id: book.section.id.toString(),
   ...book
 })
@@ -119,7 +114,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="add-book-modal">
+  <dialog ref="dialog" class="book-modal">
     <h2>Add Book</h2>
     <form @submit.prevent="addBook">
       <label for="title" class="title"
@@ -144,13 +139,7 @@ onMounted(() => {
 
       <label for="section" class="section"
         >Section
-        <select
-          id="section"
-          name="section"
-          required
-          v-model="newBook.section_id"
-          v-if="sections.length"
-        >
+        <select id="section" name="section" required v-model="newBook.section_id" v-if="sections.length">
           <option value="" disabled selected>Select a section</option>
           <option v-for="section in sections" :key="section.id" :value="section.id">
             {{ section.name }}
@@ -163,12 +152,7 @@ onMounted(() => {
 
       <label for="description" class="description"
         >Description
-        <textarea
-          id="description"
-          name="description"
-          required
-          v-model="newBook.description"
-        ></textarea>
+        <textarea id="description" name="description" required v-model="newBook.description"></textarea>
       </label>
 
       <label for="image" class="image"
@@ -201,7 +185,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.add-book-modal {
+.book-modal {
   padding: 2rem;
 
   & form {

@@ -13,7 +13,7 @@ const isAuth = computed(() => store.getters.isAuth)
 
 // const isAdmin = computed(() => store.getters.isAdmin)
 const isLibrarian = computed(() => store.getters.isLibrarian)
-// const isUser = computed(() => store.getters.isUser)
+const isUser = computed(() => store.getters.isUser)
 
 const router = useRouter()
 
@@ -36,9 +36,21 @@ const router = useRouter()
         <router-view />
       </section>
     </template>
+
+    <template v-else-if="isUser">
+      <div class="dashboard-menu">
+        <router-link to="/dashboard/">Library Overview</router-link>
+        <router-link to="/dashboard/issues">Active Issues</router-link>
+        <router-link to="/dashboard/books">My Books</router-link>
+      </div>
+
+      <section class="user-dashboard">
+        <router-view />
+      </section>
+    </template>
   </div>
 
-  <div v-else>
+  <div v-else class="unauthorized-view">
     <p>Please log in to view your dashboard.</p>
     <button @click="router.push('/login')">Login</button>
   </div>
@@ -54,6 +66,10 @@ const router = useRouter()
 }
 
 .librarian-dashboard {
+  grid-column: 1 / -1;
+}
+
+.user-dashboard {
   grid-column: 1 / -1;
 }
 
@@ -78,8 +94,37 @@ const router = useRouter()
     padding: 0.5rem;
 
     &.router-link-exact-active {
+      color: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
+    }
+  }
+}
+
+.unauthorized-view {
+  display: grid;
+  gap: 1rem;
+  place-content: center;
+  font-size: 1.5rem;
+
+  & button {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-primary);
+    border-radius: 0.5rem;
+    background-color: var(--color-primary);
+    color: var(--color-background);
+    font-weight: bold;
+
+    font-size: 1.25rem;
+
+    place-self: center;
+
+    transition:
+      background-color 500ms,
+      color 500ms;
+
+    &:hover {
+      background-color: var(--color-background);
       color: var(--color-primary);
-      border-color: var(--color-primary);
     }
   }
 }

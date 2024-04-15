@@ -113,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="add-book-modal">
+  <dialog ref="dialog" class="book-modal">
     <h2>Edit Book</h2>
     <form @submit.prevent="addBook">
       <label for="title" class="title"
@@ -138,13 +138,7 @@ onMounted(() => {
 
       <label for="section" class="section"
         >Section
-        <select
-          id="section"
-          name="section"
-          required
-          v-model="book.section_id"
-          v-if="sections.length"
-        >
+        <select id="section" name="section" required v-model="book.section_id" v-if="sections.length">
           <option value="" disabled selected>Select a section</option>
           <option v-for="section in sections" :key="section.id" :value="section.id">
             {{ section.name }}
@@ -157,12 +151,7 @@ onMounted(() => {
 
       <label for="description" class="description"
         >Description
-        <textarea
-          id="description"
-          name="description"
-          required
-          v-model="book.description"
-        ></textarea>
+        <textarea id="description" name="description" required v-model="book.description"></textarea>
       </label>
 
       <label for="image" class="image"
@@ -172,14 +161,7 @@ onMounted(() => {
 
       <label for="content" class="content"
         >Content
-        <input
-          type="file"
-          id="content"
-          name="content"
-          required
-          ref="content"
-          accept="application/pdf"
-        />
+        <input type="file" id="content" name="content" required ref="content" accept="application/pdf" />
       </label>
 
       <div class="btns">
@@ -202,7 +184,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.add-book-modal {
+.book-modal {
   padding: 2rem;
 
   & form {

@@ -14,6 +14,7 @@ app = Flask(__name__)
 # Create books directory
 BOOKS_DIR = os.path.join(os.path.dirname(__file__), "./static/books")
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "./static/images")
+GRAPH_DIR = os.path.join(os.path.dirname(__file__), "./static/graphs")
 
 if not os.path.exists(BOOKS_DIR):
     os.makedirs(BOOKS_DIR)
@@ -21,8 +22,12 @@ if not os.path.exists(BOOKS_DIR):
 if not os.path.exists(IMAGE_DIR):
     os.makedirs(IMAGE_DIR)
 
+if not os.path.exists(GRAPH_DIR):
+    os.makedirs(GRAPH_DIR)
+
 app.config["BOOKS_DIR"] = BOOKS_DIR
 app.config["IMAGE_DIR"] = IMAGE_DIR
+app.config["GRAPH_DIR"] = GRAPH_DIR
 
 # Load configuration
 app.config.from_object(LocalDevelopmentConfig)

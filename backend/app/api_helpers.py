@@ -17,11 +17,8 @@ comment_resource_fields = {
 comments_resource_fields = List(Nested(comment_resource_fields))
 
 
-comment_parser = (
-    reqparse.RequestParser()
-    .add_argument("user_id", type=int, required=True, location="json", help="User ID is required")
-    .add_argument("book_id", type=int, required=True, location="json", help="Book ID is required")
-    .add_argument("content", type=str, required=True, location="json", help="Content is required")
+comment_parser = reqparse.RequestParser().add_argument(
+    "content", type=str, required=True, location="json", help="Content is required"
 )
 
 
@@ -33,14 +30,6 @@ rating_resource_fields = {
     "rating": Integer,
 }
 
-ratings_resource_fields = List(Nested(rating_resource_fields))
-
-
-fetch_rating_parser = (
-    reqparse.RequestParser()
-    .add_argument("user_id", type=int, required=False, location="args", help="User ID is required")
-    .add_argument("book_id", type=int, required=False, location="args", help="Book ID is required")
-)
 
 new_rating_parser = reqparse.RequestParser().add_argument(
     "rating", type=int, required=True, location="json", help="Rating is required", choices=[1, 2, 3, 4, 5]

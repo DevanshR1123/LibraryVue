@@ -178,33 +178,24 @@ class SectionAPI(Resource):
 
 
 class CommentAPI(Resource):
-    def get(self, id=None):
-        if id:
-            comment = Comment.query.get_or_404(id, "Comment not found")
-            return marshal(comment, comment_resource_fields)
-        else:
-            comments = Comment.query.all()
-            return marshal(comments, comment_resource_fields)
+    def get(self):
+        return marshal(current_user.comments, comment_resource_fields)
 
     @auth_required("token")
-    def post(self):
+    def post(self, id):
         data = comment_parser.parse_args()
-        comment = Comment(
-            user_id=data.get("user_id"),
-            book_id=data.get("book_id"),
-            content=data.get("content"),
-        )
+        comment = Comment(user_id=current_user.id, book_id=id, content=data.get("content"))
         db.session.add(comment)
         db.session.commit()
-        return marshal(comment, comment_resource_fields)
+        return marshal(comment, comment_resource_fields), 201
 
     @auth_required("token")
     def put(self, id):
         data = comment_parser.parse_args()
-        comment: Comment = Comment.query.get_or_404(id, "Comment not found")
+        comment = Comment.query.get_or_404(id, "Comment not found")
         comment.content = data.get("content")
         db.session.commit()
-        return marshal(comment, comment_resource_fields)
+        return marshal(comment, comment_resource_fields), 201
 
     @auth_required("token")
     def delete(self, id):
@@ -240,7 +231,7 @@ class RatingAPI(Resource):
 class BookIssueAPI(Resource):
     @auth_required("token")
     def get(self):
-        return marshal(current_user.all_issues, issue_resource_fields)
+        return marshal(current_user.all_issues, librarian_issue_resource_fields)
 
     @auth_required("token")
     def post(self, id):
@@ -314,6 +305,8 @@ class LibrarianIssueAPI(Resource):
     @roles_accepted("librarian")
     def put(self, id):
         issue = BookIssue.query.get_or_404(id, "Issue request not found")
+        if issue.granted:
+            return {"message": "Issue request already granted"}, 400
         issue.rejected = True
         db.session.commit()
         return {"message": "Issue request rejected successfully"}, 204

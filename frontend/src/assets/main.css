@@ -41,7 +41,7 @@
 
   --color-primary: hsl(29, 58%, 67%);
   --color-primary-light: hsl(29, 58%, 72%);
-  --color-primary-dark: hsl(29, 58%, 62%);
+  --color-primary-dark: hsl(29, 58%, 60%);
 
   --color-secondary: hsl(210, 29%, 24%);
   --color-secondary-light: hsl(210, 29%, 29%);
@@ -95,14 +95,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  display: grid;
+  /* display: grid; */
   /* overflow: hidden; */
 }
 
 #app {
   display: grid;
   grid-template-rows: auto 1fr;
-  max-height: 100vh;
+  min-height: 100vh;
 }
 
 main {
@@ -235,6 +235,7 @@ dialog {
 }
 
 .button {
+  font-family: Inter, sans-serif;
   padding: 0.5rem 1rem;
 
   background-color: var(--color-primary);

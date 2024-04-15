@@ -48,7 +48,6 @@ const userRating = computed<Rating>(() => store.getters.rating(id))
 const rating = computed(() => (userRating.value?.rating || book.value?.rating || 0).toFixed(1))
 
 const canRead = computed(() => isAuth.value && ((isUser.value && issued.value) || isLibrarian.value))
-
 const canIssue = computed<boolean>(() => isAuth.value && isUser.value && !issued.value && !requested.value)
 const canUnissue = computed<boolean>(() => isAuth.value && isUser.value && requested.value && !issued.value)
 const canReturn = computed<boolean>(() => isAuth.value && isUser.value && issued.value)
@@ -125,13 +124,8 @@ const handleRating = (e: MouseEvent) => {
           <!-- <Comments :comments="comments" /> -->
 
           <template v-if="isLibrarian">
-            <div class="requests" v-if="requests.length">
-              <IssueRequests :requests="requests" :include_title="false" />
-            </div>
-
-            <div class="issues" v-if="issues.length">
-              <ActiveIssues :issues="issues" :include_title="false" />
-            </div>
+            <IssueRequests :requests="requests" :include_title="false" v-if="requests.length" />
+            <ActiveIssues :issues="issues" :include_title="false" v-if="issues.length" />
           </template>
         </template>
       </div>

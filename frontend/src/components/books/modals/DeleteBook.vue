@@ -35,12 +35,11 @@ const deleteBook = async () => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="delete-book-modal">
+  <dialog ref="dialog" class="book-modal">
     <h2>Delete Book</h2>
     <form @submit.prevent="deleteBook">
       <p>
-        Are you sure you want to delete <strong>"{{ book.title }}"</strong> by
-        <strong>{{ book.author }}</strong
+        Are you sure you want to delete <strong>"{{ book.title }}"</strong> by <strong>{{ book.author }}</strong
         >?
       </p>
 
@@ -55,7 +54,7 @@ const deleteBook = async () => {
 </template>
 
 <style scoped>
-.delete-book-modal {
+.book-modal {
   padding: 2rem;
   max-width: 32rem;
 

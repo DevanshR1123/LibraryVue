@@ -103,3 +103,17 @@ export interface LibrarianIssue extends BookIssue {
   user: User
   book: Book
 }
+
+export interface Stats {
+  total_users: number
+  total_books: number
+  total_issued: number
+  total_sections: number
+  total_years: number
+  sections: Record<string, number>
+  years: Record<number, number>
+  issued_books: Record<string, number>
+  percentage_issued: number
+  top_5_most_issued_sections: Record<string, number>
+  top_5_most_issued_books: Array<{ title: string; total_issues: number }>
+}

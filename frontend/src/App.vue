@@ -10,7 +10,7 @@ const isAuth = computed(() => store.getters.isAuth)
 
 const baseLinks = [
   { path: '/', name: 'Home' },
-  // { path: '/about', name: 'About' },
+  { path: '/search', name: 'Search' },
   { path: '/books', name: 'Books' },
   { path: '/sections', name: 'Sections' }
 ]
@@ -18,10 +18,10 @@ const baseLinks = [
 const authLinks = [{ path: '/dashboard', name: 'Dashboard' }]
 const links = computed(() => (isAuth.value ? [...baseLinks, ...authLinks] : baseLinks))
 
-onBeforeMount(() => {
-  store.dispatch('checkAuth')
-  store.dispatch('getBooks')
-  store.dispatch('getSections')
+onBeforeMount(async () => {
+  await store.dispatch('checkAuth')
+  await store.dispatch('getBooks')
+  await store.dispatch('getSections')
 })
 </script>
 

@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useStore } from '@/store'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import VuePdfEmbed from 'vue-pdf-embed'
+import IssueBook from '@/components/books/modals/IssueBook.vue'
 
-const router = useRouter()
 const route = useRoute()
 const id = parseInt(route.params.id as string)
 
 const store = useStore()
 const isAuth = computed(() => store.getters.isAuth)
-const book = computed(() => store.getters.book(id))
+const isLibrarian = computed(() => store.getters.isLibrarian)
+const isUser = computed(() => store.getters.isUser)
 
+const book = computed(() => store.getters.book(id))
 const title = computed(() => book.value?.title)
 
 const content = computed(() => `http://localhost:5000/books/${id}/content`)
-const canRead = computed(() => isAuth.value)
 
-// onMounted(() => {
-//   if (!isAuth.value) router.push('/login')
-// })
+const issued = computed(() => store.getters.issued(id))
+const canRead = computed(() => isAuth.value && ((isUser.value && issued.value) || isLibrarian.value))
+const canIssue = computed(() => isAuth.value && isUser.value && !issued.value)
 </script>
 
 <template>
@@ -28,10 +29,22 @@ const canRead = computed(() => isAuth.value)
       <h1>{{ title }}</h1>
       <VuePdfEmbed :source="content" />
     </div>
-    <div v-else class="unauthorized">
+
+    <div v-else-if="canIssue && book" class="unauthorized-view">
+      <h1>Book not issued</h1>
+      <p>You need to issue this book to read it</p>
+      <IssueBook :book="book" />
+    </div>
+
+    <div v-else-if="!book" class="unauthorized-view">
+      <h1>Book not found</h1>
+      <RouterLink to="/books" class="button">Back to Books</RouterLink>
+    </div>
+
+    <div v-else class="unauthorized-view">
       <h1>Unauthorized</h1>
       <p>You need to be logged in to read this book</p>
-      <RouterLink to="/login">Login</RouterLink>
+      <RouterLink to="/login" class="button">Login</RouterLink>
     </div>
   </section>
 </template>
@@ -107,11 +120,12 @@ const canRead = computed(() => isAuth.value)
   }
 }
 
-.unauthorized {
+.unauthorized-view {
   display: grid;
   gap: 1rem;
   place-content: center;
   text-align: center;
+  font-size: 1.5rem;
 
   h1 {
     font-size: 2.5rem;
@@ -121,9 +135,26 @@ const canRead = computed(() => isAuth.value)
     font-size: 1.5rem;
   }
 
-  a {
-    color: var(--color-text);
-    text-decoration: none;
+  .button {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-primary);
+    border-radius: 0.5rem;
+    background-color: var(--color-primary);
+    color: var(--color-background);
+    font-weight: bold;
+
+    font-size: 1.25rem;
+
+    place-self: center;
+
+    transition:
+      background-color 500ms,
+      color 500ms;
+
+    &:hover {
+      background-color: var(--color-background);
+      color: var(--color-primary);
+    }
   }
 }
 

@@ -39,6 +39,7 @@ class User(db.Model, UserMixin):
     books = relationship("Book", secondary="book_issue", back_populates="users", viewonly=True)
     issues = relationship("BookIssue", backref="user")
     ratings = relationship("Rating", backref="user")
+    comments = relationship("Comment", backref="user")
 
     def get_security_payload(self):
         rv = super().get_security_payload()
@@ -77,6 +78,10 @@ class Role(db.Model, RoleMixin):
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
+
+
+# Setup Flask-Security
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 
 
 # Library Models
@@ -122,7 +127,15 @@ class Book(db.Model):
 
     @property
     def issued(self):
-        return any([issue.returned == False for issue in self.issues])
+        return any([issue.active for issue in self.issues])
+
+    @property
+    def total_issues(self):
+        return len([issue for issue in self.issues if issue.granted])
+
+    @property
+    def total_active_issues(self):
+        return len([issue for issue in self.issues if issue.active])
 
     @property
     def rating(self):
@@ -174,8 +187,4 @@ class BookIssue(db.Model):
 
     @property
     def requested(self):
-        return not self.returned and not self.granted
-
-
-# Setup Flask-Security
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+        return not self.returned and not self.granted and not self.rejected

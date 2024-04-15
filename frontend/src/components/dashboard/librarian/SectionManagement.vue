@@ -8,10 +8,13 @@ import SectionPlaceholder from '@/components/SectionPlaceholder.vue'
 const store = useStore()
 
 const sections = computed(() => store.getters.sections)
+
+const isLibrarian = computed(() => store.getters.isLibrarian)
+const isUser = computed(() => store.getters.isUser)
 </script>
 
 <template>
-  <div class="section-management">
+  <div class="section-management" v-if="isLibrarian">
     <h3>Section Management</h3>
     <div class="sections">
       <div class="section" v-for="section in sections" :key="section.id">
@@ -19,6 +22,7 @@ const sections = computed(() => store.getters.sections)
         <div class="section-info">
           <p class="name"><strong>Name:</strong> {{ section.name }}</p>
           <p class="description"><strong>Description:</strong> {{ section.description }}</p>
+          <p class="books"><strong>Books:</strong> {{ section.books.length }}</p>
         </div>
         <div class="section-actions">
           <EditSection :section="section" />
@@ -26,6 +30,10 @@ const sections = computed(() => store.getters.sections)
         </div>
       </div>
     </div>
+  </div>
+
+  <div v-else class="unauthorized-view">
+    <p>Only librarians can view this page.</p>
   </div>
 </template>
 
@@ -63,7 +71,13 @@ img {
 
 .section-info {
   display: grid;
-  gap: 1rem;
+  align-self: start;
+}
+
+.name {
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--color-secondary);
+  margin-bottom: 0.5rem;
 }
 
 .section-actions {

@@ -31,7 +31,7 @@ const issueBook = async () => {
 </script>
 
 <template>
-  <dialog ref="dialog" class="issue-book-modal">
+  <dialog ref="dialog" class="book-modal">
     <h2>Issue Book</h2>
     <form @submit.prevent="issueBook">
       <p>
@@ -50,7 +50,7 @@ const issueBook = async () => {
 </template>
 
 <style scoped>
-.issue-book-modal {
+.book-modal {
   padding: 2rem;
   max-width: 32rem;
 
