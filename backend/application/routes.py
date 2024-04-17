@@ -188,7 +188,4 @@ def user_stats():
         .head(5)
         .to_dict(orient="records"),
     }
-
-    print(stats)
-
     return stats

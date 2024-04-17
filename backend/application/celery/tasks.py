@@ -1,9 +1,10 @@
 import os
 from datetime import datetime, timedelta
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 import seaborn as sb
+import matplotlib.pyplot as plt
 
 from application.celery.celery import celery
 from application.models import Book, Section, User
@@ -80,7 +81,57 @@ def notify_user():
 
 @celery.task
 def generate_report():
-    pass
+    for user in User.query.filter(User.roles.any(name="user")).all():
+        user_books = [issue.book for issue in user.all_issues]
+
+        books_data = pd.DataFrame(
+            [
+                {
+                    "id": book.id,
+                    "title": book.title,
+                    "author": book.author,
+                    "section": book.section.name,
+                    "year": book.year,
+                }
+                for book in user_books
+            ],
+            columns=["id", "title", "author", "section", "year"],
+        )
+
+        stats = {
+            "total_issues": len(user.active_issues),
+            "total_books": len(set([issue.book.id for issue in user.all_issues])),
+            "total_sections": len(set([issue.book.section.name for issue in user.all_issues])),
+        }
+
+        sections = books_data["section"].value_counts().to_frame()
+
+        top_5_most_issued_sections = (
+            books_data["section"].value_counts().reset_index().sort_values("count", ascending=False).head(5)
+        )
+        top_5_most_issued_books = (
+            books_data["title"].value_counts().reset_index().sort_values("count", ascending=False).head(5)
+        )
+
+        report = f"""
+User report for {user.full_name}:
+
+Total issues: {stats["total_issues"]}
+Total books: {stats["total_books"]}
+Total sections: {stats["total_sections"]}
+
+Explored sections:
+{sections}
+
+Top 5 most issued sections:
+{top_5_most_issued_sections}
+
+Top 5 most issued books: 
+{top_5_most_issued_books}
+
+"""
+        print(report)
+        # Send report to user
 
 
 @celery.task
@@ -133,17 +184,19 @@ def generate_graph():
     plt.savefig(f"{GRAPH_DIR}/by_section_total_issue_count.png")
 
     issues = get_issues_data()
+    min_date = issues["date_issued"].min()
+    max_date = issues["date_issued"].max()
     plt.figure(figsize=(8, 6))
-    sb.countplot(
+    sb.lineplot(
         data=issues,
-        x="issue_date",
+        x="date_issued",
+        y="total_issues",
         palette="tab10",
-        hue="issue_date",
         legend=False,
     )
     plt.title("Number of issues per day")
     plt.ylabel("Number of issues")
-    plt.xticks(rotation=90)
+    plt.xticks(np.arange(min_date, max_date, timedelta(days=7)), rotation=90)
     plt.tight_layout()
     plt.savefig(f"{GRAPH_DIR}/issues_time_series.png")
 
