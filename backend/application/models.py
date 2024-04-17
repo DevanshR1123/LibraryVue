@@ -1,7 +1,7 @@
 from flask import request
 from flask_security import RoleMixin, SQLAlchemyUserDatastore, UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 from datetime import datetime
 
@@ -110,6 +110,7 @@ class Book(db.Model):
     description = Column(String(255))
     isbn = Column(String(50), nullable=False)
     year = Column(Integer, nullable=False)
+    # price = Column(Integer, nullable=False, default=0)
     content = Column(String(255))  # file path
     image = Column(String(255), nullable=True)  # file path
     date_added = Column(DateTime())

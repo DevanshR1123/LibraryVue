@@ -106,6 +106,7 @@ book_resource_fields = {
     "year": Integer,
     "date_added": DateTime,
     "description": String,
+    "price": Float,
     "image": String,
     "section": Nested(
         {

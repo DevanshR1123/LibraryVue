@@ -41,7 +41,7 @@ instance/
 dist/
 build/
 
-data/
+notebooks/
 static/
 
 # Celery

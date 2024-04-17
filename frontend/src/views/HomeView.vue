@@ -10,6 +10,8 @@ const books = computed(() => store.state.books)
 const sections = computed(() => store.state.sections)
 
 const issues = computed(() => store.getters.active_issues)
+
+const isUser = computed(() => store.getters.isUser)
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const issues = computed(() => store.getters.active_issues)
       <SearchBox />
     </div>
 
-    <div class="cards">
+    <div class="cards" v-if="isUser">
       <h2>Your Current Books</h2>
       <div class="card-grid issue-grid">
         <BookCard v-for="issue in issues" :key="issue.id" :book="issue.book" />

@@ -27,7 +27,7 @@ const stats: LibraryStats = await store.dispatch('getLibraryStats')
       </div>
       <div class="statistic">
         <span>% Issued Books:</span>
-        <span>{{ stats.percentage_issued }}%</span>
+        <span>{{ stats.percentage_issued.toFixed(2) }}%</span>
       </div>
     </div>
 

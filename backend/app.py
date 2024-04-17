@@ -13,7 +13,7 @@ import os
 # Create app
 app = Flask(__name__)
 
-# Create books directory
+# Create directories for storing books, images and graphs if they do not exist in the static
 BOOKS_DIR = os.path.join(os.path.dirname(__file__), "./static/books")
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "./static/images")
 GRAPH_DIR = os.path.join(os.path.dirname(__file__), "./static/graphs")
