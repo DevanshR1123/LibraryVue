@@ -130,8 +130,20 @@ class Book(db.Model):
         return any([issue.active for issue in self.issues])
 
     @property
+    def granted_issues(self):
+        return [issue for issue in self.issues if issue.granted]
+
+    @property
+    def requested_issues(self):
+        return [issue for issue in self.issues if issue.requested]
+
+    @property
+    def active_issues(self):
+        return [issue for issue in self.issues if issue.active]
+
+    @property
     def total_issues(self):
-        return len([issue for issue in self.issues if issue.granted])
+        return len(self.granted_issues)
 
     @property
     def total_active_issues(self):
@@ -150,6 +162,13 @@ class Comment(db.Model):
     book_id = Column(Integer, ForeignKey("book.id", ondelete="cascade"), nullable=False)
     content = Column(String(255))
     timestamp = Column(DateTime())
+
+    def __repr__(self):
+        return f"<Comment {self.content}>"
+
+    @property
+    def username(self):
+        return self.user.full_name
 
 
 class Rating(db.Model):

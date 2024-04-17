@@ -46,22 +46,22 @@ const clearSearch = () => {
         <CrossIcon />
       </button>
     </form>
-    <section class="results">
-      <h1 class="search-header" v-if="search">Search results for "{{ search }}"</h1>
+    <section class="results" v-if="sectionResults.length">
+      <h1 class="search-header" v-if="search">Search results for "{{ search }}" in Sections</h1>
       <h1 class="search-header" v-else>Sections</h1>
       <div class="catalogue">
-        <p v-if="!sectionResults.length" class="no-books">No sections found</p>
         <SectionCard v-for="section in sectionResults" :key="section.id" :section="section" />
       </div>
     </section>
-    <section class="results">
-      <h1 class="search-header" v-if="search">Search results for "{{ search }}"</h1>
+    <section class="results" v-if="bookResults.length">
+      <h1 class="search-header" v-if="search">Search results for "{{ search }}" in Books</h1>
       <h1 class="search-header" v-else>Books</h1>
       <div class="catalogue">
-        <p v-if="!bookResults.length" class="no-books">No books found</p>
         <BookCard v-for="book in bookResults" :key="book.id" :book="book" />
       </div>
     </section>
+
+    <h1 class="no-books" v-if="!sectionResults.length && !bookResults.length">No results found</h1>
   </div>
 </template>
 

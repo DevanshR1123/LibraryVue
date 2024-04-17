@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -20,15 +22,23 @@ class Config:
 
     WTF_CSRF_ENABLED = False
 
+    CELERY_BROKER_URL = "redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/2"
+
+    CACHE_TYPE = "redis"
+    CACHE_REDIS_URL = "redis://localhost:6379/0"
+    CACHE_DEFAULT_TIMEOUT = 300
+    CACHE_REDIS_HOST = "localhost"
+    CACHE_REDIS_PORT = 6379
+    CACHE_REDIS_DB = 0
+
 
 class LocalDevelopmentConfig(Config):
     DEBUG = True
 
     # SQLite database
     SQLITE_DB_DIR = os.path.join(basedir, "../")
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(
-        SQLITE_DB_DIR, "database.sqlite3"
-    )
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(SQLITE_DB_DIR, "database.sqlite3")
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

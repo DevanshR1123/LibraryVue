@@ -96,27 +96,6 @@ const canIssue = computed(() => isAuth.value && isUser.value && !issued.value)
         overflow: hidden;
       }
     }
-
-    &::-webkit-scrollbar {
-      width: 0.5rem;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--color-primary);
-      border-radius: 0.25rem;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: var(--color-background-mute);
-    }
-
-    &::-webkit-scrollbar-corner {
-      background-color: var(--color-background);
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background-color: var(--color-primary-dark);
-    }
   }
 }
 

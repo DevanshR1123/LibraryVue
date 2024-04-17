@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from app.models import Book, Section, BookIssue, User, Rating, db
+from application.models import Book, Section, BookIssue, User, Rating, db
 
 
 def is_valid_isbn(isbn):

@@ -2,9 +2,11 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 from flask_security import Security
+from flask_caching import Cache
 
-from app.config import LocalDevelopmentConfig
-from app.models import db, user_datastore, Role, User, Book, Section, Comment, Rating, BookIssue
+from application.config import LocalDevelopmentConfig
+from application.models import db, user_datastore
+from application.cache import cache, redis_client
 
 import os
 
@@ -44,14 +46,26 @@ app.security = Security(app, user_datastore)
 # Setup Flask-Restful
 api = Api(app)
 
+cache.init_app(app)
+
+app.extensions["redis"] = redis_client
+
+# Push app context
 app.app_context().push()
 
 
+# Import Celery
+from application.celery.celery import celery
+
+app.extensions["celery"] = celery
+
+app.app_context().push()
+
 # Import routes
-from app.routes import *
+from application.routes import *
 
 # Add resources
-from app.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI, LibrarianIssueAPI
+from application.api import SearchAPI, BookAPI, SectionAPI, CommentAPI, RatingAPI, BookIssueAPI, LibrarianIssueAPI
 
 api.add_resource(SearchAPI, "/search")
 api.add_resource(BookAPI, "/books", "/books/<int:id>")

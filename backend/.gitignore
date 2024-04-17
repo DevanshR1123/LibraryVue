@@ -43,3 +43,9 @@ build/
 
 data/
 static/
+
+# Celery
+celerybeat-schedule.*
+celerybeat.pid
+celeryd.pid
+celery_result

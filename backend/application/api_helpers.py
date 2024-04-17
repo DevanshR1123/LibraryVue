@@ -12,6 +12,7 @@ comment_resource_fields = {
     "book_id": Integer,
     "content": String,
     "timestamp": DateTime,
+    "username": String,
 }
 
 comments_resource_fields = List(Nested(comment_resource_fields))

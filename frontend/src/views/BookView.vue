@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute, RouterLink } from 'vue-router'
 import { computed } from 'vue'
-import type { Book, Comment, Rating, BookIssue, LibrarianIssue } from '@/types'
+import type { Book, Rating, LibrarianIssue } from '@/types'
 import BookPlaceholder from '@/components/BookPlaceholder.vue'
 import { useStore } from '@/store'
 // import AdminToolbar from '@/components/AdminToolbar.vue'
@@ -13,6 +13,8 @@ import UnissueBook from '@/components/books/modals/UnissueBook.vue'
 
 import IssueRequests from '@/components/books/IssueRequests.vue'
 import ActiveIssues from '@/components/books/ActiveIssues.vue'
+
+import CommentsList from '@/components/comments/CommentsList.vue'
 
 const store = useStore()
 
@@ -121,7 +123,7 @@ const handleRating = (e: MouseEvent) => {
             <DeleteBook v-if="canModify" :book="book" />
           </div>
 
-          <!-- <Comments :comments="comments" /> -->
+          <CommentsList :book="book" />
 
           <template v-if="isLibrarian">
             <IssueRequests :requests="requests" :include_title="false" v-if="requests.length" />

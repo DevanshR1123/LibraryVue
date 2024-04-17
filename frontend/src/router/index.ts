@@ -10,8 +10,8 @@ import SectionsView from '@/views/SectionsView.vue'
 import SectionView from '@/views/SectionView.vue'
 import SearchView from '@/views/SearchView.vue'
 import ReaderView from '@/views/ReaderView.vue'
-import IssueManagement from '@/components/dashboard/librarian/IssueManagement.vue'
-import LibrarianDashboard from '@/components/dashboard/librarian/LibrarianDashboard.vue'
+import IssueManagement from '@/components/dashboard/IssueManagement.vue'
+import StatisticsDashboard from '@/components/dashboard/StatisticsDashboard.vue'
 import BooksManagement from '@/components/dashboard/librarian/BooksManagement.vue'
 import SectionManagement from '@/components/dashboard/librarian/SectionManagement.vue'
 
@@ -65,8 +65,8 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'librarian-dashboard',
-          component: LibrarianDashboard
+          name: 'statistics-dashboard',
+          component: StatisticsDashboard
         },
         {
           path: 'issues',

@@ -44,7 +44,7 @@
   --color-primary-dark: hsl(29, 58%, 60%);
 
   --color-secondary: hsl(210, 29%, 24%);
-  --color-secondary-light: hsl(210, 29%, 29%);
+  --color-secondary-light: hsl(210, 29%, 50%);
   --color-secondary-dark: hsl(210, 29%, 19%);
 
   --color-success: hsla(120, 100%, 37%, 1);
@@ -285,7 +285,8 @@ dialog {
     }
   }
 
-  &.unissue {
+  &.unissue,
+  &.comment {
     background-color: var(--color-warning);
 
     &:hover {
@@ -301,4 +302,26 @@ dialog {
       background-color: var(--color-error-dark);
     }
   }
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 0.25rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-background-mute);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary-dark);
 }

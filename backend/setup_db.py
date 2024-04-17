@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_security import Security, hash_password
-from app.config import LocalDevelopmentConfig
-from app.models import db, user_datastore, Section
+from application.config import LocalDevelopmentConfig
+from application.models import db, user_datastore, Section
 
 # Create app
 app = Flask(__name__)

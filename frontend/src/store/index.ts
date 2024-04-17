@@ -1,6 +1,17 @@
 import { type InjectionKey } from 'vue'
 import { createStore, Store, useStore as baseUseStore } from 'vuex'
-import type { User, Book, NewBook, Section, NewSection, BookIssue, LibrarianIssue, Rating } from '@/types'
+import type {
+  User,
+  Book,
+  NewBook,
+  Section,
+  NewSection,
+  BookIssue,
+  LibrarianIssue,
+  Rating,
+  Comment,
+  LibraryStats
+} from '@/types'
 import { toast } from 'vue3-toastify'
 
 interface State {
@@ -9,6 +20,7 @@ interface State {
   sections: Section[]
   issues: BookIssue[] | LibrarianIssue[]
   ratings: Rating[]
+  comments: Comment[]
 }
 
 const apiUrl = 'http://localhost:5000'
@@ -24,7 +36,8 @@ export const store = createStore<State>({
     books: [],
     sections: [],
     issues: [],
-    ratings: []
+    ratings: [],
+    comments: []
   },
 
   getters: {
@@ -62,7 +75,11 @@ export const store = createStore<State>({
 
     // Ratings
     ratings: (state) => state.ratings,
-    rating: (state) => (book_id: number) => state.ratings.find((rating: Rating) => rating.book_id === book_id)
+    rating: (state) => (book_id: number) => state.ratings.find((rating: Rating) => rating.book_id === book_id),
+
+    // Comments
+    comments: (state) => state.comments,
+    comment_by_user: (state) => (comment_id: number) => state.comments.some((comment) => comment.id === comment_id)
   },
 
   mutations: {
@@ -74,15 +91,15 @@ export const store = createStore<State>({
       state.ratings = []
     },
 
+    // User
+    SET_USER(state, user: User) {
+      state.user = user
+    },
+
     CLEAR_USER_DATA(state) {
       state.user = null
       state.issues = []
       state.ratings = []
-    },
-
-    // User
-    SET_USER(state, user: User) {
-      state.user = user
     },
 
     // Books
@@ -103,22 +120,28 @@ export const store = createStore<State>({
     // Ratings
     SET_RATINGS(state, ratings: Rating[]) {
       state.ratings = ratings
+    },
+
+    // Comments
+    SET_COMMENTS(state, comments: Comment[]) {
+      state.comments = comments
     }
   },
 
   actions: {
     // User
-    login({ commit, dispatch, getters }, user: User) {
+    async login({ commit, dispatch, getters }, user: User) {
       localStorage.setItem('user', JSON.stringify(user))
       commit('SET_USER', user)
 
       toast.success(`Welcome back, ${getters.fullName}`)
 
       if (getters.isUser) {
-        dispatch('getIssues')
-        dispatch('getRatings')
+        await dispatch('getIssues')
+        await dispatch('getRatings')
+        await dispatch('getComments')
       } else if (getters.isLibrarian) {
-        dispatch('getLibrarianIssues')
+        await dispatch('getLibrarianIssues')
       }
     },
 
@@ -138,10 +161,11 @@ export const store = createStore<State>({
         if (res.status === 200) {
           commit('SET_USER', user)
           if (getters.isUser) {
-            dispatch('getIssues')
-            dispatch('getRatings')
+            await dispatch('getIssues')
+            await dispatch('getRatings')
+            await dispatch('getComments')
           } else if (getters.isLibrarian) {
-            dispatch('getLibrarianIssues')
+            await dispatch('getLibrarianIssues')
           }
         } else {
           localStorage.removeItem('user')
@@ -180,7 +204,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getBooks')
+        await dispatch('getBooks')
         toast.success('Book created successfully')
       }
     },
@@ -207,7 +231,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getBooks')
+        await dispatch('getBooks')
         toast.success('Book updated successfully')
       }
     },
@@ -221,7 +245,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 204) {
-        dispatch('getBooks')
+        await dispatch('getBooks')
         toast.success('Book deleted successfully')
       }
     },
@@ -250,7 +274,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getSections')
+        await dispatch('getSections')
         toast.success('Section created successfully')
       }
     },
@@ -275,7 +299,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getSections')
+        await dispatch('getSections')
         toast.success('Section updated successfully')
       }
     },
@@ -288,7 +312,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 204) {
-        dispatch('getSections')
+        await dispatch('getSections')
         toast.success('Section deleted successfully')
       }
     },
@@ -311,7 +335,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getIssues')
+        await dispatch('getIssues')
         toast.success('Book requested successfully')
       } else if (response.status === 400) {
         const { message } = await response.json()
@@ -327,7 +351,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getIssues')
+        await dispatch('getIssues')
         toast.success('Book unissued successfully')
       }
     },
@@ -340,7 +364,7 @@ export const store = createStore<State>({
       })
 
       if (response.status === 204) {
-        dispatch('getIssues')
+        await dispatch('getIssues')
         toast.success('Book returned successfully')
       }
     },
@@ -365,8 +389,8 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getBooks')
-        dispatch('getRatings')
+        await dispatch('getBooks')
+        await dispatch('getRatings')
       }
     },
 
@@ -389,8 +413,8 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getBooks')
-        dispatch('getLibrarianIssues')
+        await dispatch('getBooks')
+        await dispatch('getLibrarianIssues')
         toast.success('Book granted successfully')
       }
     },
@@ -403,8 +427,8 @@ export const store = createStore<State>({
       })
 
       if (response.status === 201) {
-        dispatch('getBooks')
-        dispatch('getLibrarianIssues')
+        await dispatch('getBooks')
+        await dispatch('getLibrarianIssues')
         toast.success('Book rejected successfully')
       }
     },
@@ -418,10 +442,68 @@ export const store = createStore<State>({
       })
 
       if (response.status === 204) {
-        dispatch('getBooks')
-        dispatch('getLibrarianIssues')
+        await dispatch('getBooks')
+        await dispatch('getLibrarianIssues')
         toast.success('Book revoked successfully')
       }
+    },
+
+    // Comments
+    async getComments({ commit, state }) {
+      if (!state.user) return
+      const response = await fetch(`${apiUrl}/comments`, {
+        headers: { ...headers, 'Authentication-Token': state.user.authentication_token }
+      })
+      const data = await response.json()
+      commit('SET_COMMENTS', data)
+    },
+
+    async createComment({ dispatch, state }, { book_id, content }: { book_id: number; content: string }) {
+      if (!state.user) return
+      const response = await fetch(`${apiUrl}/comments/${book_id}`, {
+        method: 'POST',
+        headers: { ...headers, 'Authentication-Token': state.user.authentication_token },
+        body: JSON.stringify({ content })
+      })
+
+      if (response.status === 201) {
+        await dispatch('getBooks')
+        await dispatch('getComments')
+        toast.success('Comment created successfully')
+      }
+    },
+
+    async deleteComment({ dispatch, state }, comment_id: number) {
+      if (!state.user) return
+      const response = await fetch(`${apiUrl}/comments/${comment_id}`, {
+        method: 'DELETE',
+        headers: { 'Authentication-Token': state.user.authentication_token }
+      })
+
+      if (response.status === 204) {
+        await dispatch('getBooks')
+        await dispatch('getComments')
+        toast.success('Comment deleted successfully')
+      }
+    },
+
+    // Stats
+    async getLibraryStats({ state, getters }) {
+      if (!(state.user && getters.isLibrarian)) return
+      const response = await fetch(`${apiUrl}/stats/library`, {
+        headers: { ...headers, 'Authentication-Token': state.user.authentication_token }
+      })
+      const data = await response.json()
+      return data as LibraryStats
+    },
+
+    async getUserStats({ state, getters }) {
+      if (!(state.user && getters.isUser)) return
+      const response = await fetch(`${apiUrl}/stats/user`, {
+        headers: { ...headers, 'Authentication-Token': state.user.authentication_token }
+      })
+      const data = await response.json()
+      return data
     }
   }
 })

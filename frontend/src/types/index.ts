@@ -78,6 +78,7 @@ export interface Comment {
   book_id: number
   content: string
   timestamp: Date
+  username: string
 }
 
 export interface Rating {
@@ -104,7 +105,7 @@ export interface LibrarianIssue extends BookIssue {
   book: Book
 }
 
-export interface Stats {
+export interface LibraryStats {
   total_users: number
   total_books: number
   total_issued: number
@@ -114,6 +115,15 @@ export interface Stats {
   years: Record<number, number>
   issued_books: Record<string, number>
   percentage_issued: number
-  top_5_most_issued_sections: Record<string, number>
+  top_5_most_issued_sections: Array<{ section: string; total_issues: number }>
   top_5_most_issued_books: Array<{ title: string; total_issues: number }>
+}
+
+export interface UserStats {
+  total_issues: number
+  total_books: number
+  total_sections: number
+  sections: Record<string, number>
+  top_5_most_issued_sections: Array<{ section: string; count: number }>
+  top_5_most_issued_books: Array<{ title: string; count: number }>
 }

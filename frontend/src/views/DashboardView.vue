@@ -39,7 +39,7 @@ const router = useRouter()
 
     <template v-else-if="isUser">
       <div class="dashboard-menu">
-        <router-link to="/dashboard/">Library Overview</router-link>
+        <router-link to="/dashboard/">Profile Overview</router-link>
         <router-link to="/dashboard/issues">Active Issues</router-link>
         <router-link to="/dashboard/books">My Books</router-link>
       </div>

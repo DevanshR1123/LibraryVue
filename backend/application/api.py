@@ -1,6 +1,7 @@
 import base64
 import os
 import re
+import time
 import uuid
 
 from datetime import datetime, timedelta
@@ -10,9 +11,9 @@ from flask import request
 from flask_restful import Resource, marshal
 from flask_security import auth_required, roles_accepted, current_user
 
-from app.api_helpers import *
-from app.models import Book, Comment, Rating, Section, db, BookIssue
-from app.utils import is_valid_isbn
+from application.api_helpers import *
+from application.models import Book, Comment, Rating, Section, db, BookIssue
+from application.utils import is_valid_isbn
 
 BOOKS_DIR = app.config["BOOKS_DIR"]
 IMAGE_DIR = app.config["IMAGE_DIR"]
@@ -178,13 +179,14 @@ class SectionAPI(Resource):
 
 
 class CommentAPI(Resource):
+    @auth_required("token")
     def get(self):
         return marshal(current_user.comments, comment_resource_fields)
 
     @auth_required("token")
     def post(self, id):
         data = comment_parser.parse_args()
-        comment = Comment(user_id=current_user.id, book_id=id, content=data.get("content"))
+        comment = Comment(user_id=current_user.id, book_id=id, content=data.get("content"), timestamp=datetime.now())
         db.session.add(comment)
         db.session.commit()
         return marshal(comment, comment_resource_fields), 201
@@ -202,7 +204,7 @@ class CommentAPI(Resource):
         comment = Comment.query.get_or_404(id, "Comment not found")
         db.session.delete(comment)
         db.session.commit()
-        return {"message": "Comment deleted successfully"}
+        return {"message": "Comment deleted successfully"}, 204
 
 
 class RatingAPI(Resource):
